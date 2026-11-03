@@ -51,6 +51,7 @@ import appeng.api.implementations.IPowerChannelState;
 import appeng.api.interfaces.IInterfaceNameProvider;
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGridNode;
+import appeng.api.networking.crafting.ICraftingGrid;
 import appeng.api.networking.crafting.ICraftingPatternDetails;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.crafting.ICraftingProviderHelper;
@@ -79,6 +80,8 @@ import appeng.util.IWideReadableNumberConverter;
 import appeng.util.PatternMultiplierHelper;
 import appeng.util.Platform;
 import appeng.util.ReadableNumberConverter;
+import appeng.util.TunnelPatternExpander;
+import appeng.util.inv.MEInventoryCrafting;
 import gregtech.api.enums.Dyes;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.ItemList;
@@ -468,9 +471,10 @@ public class SuperCraftingInputHatchME extends MTEHatchInputBus
             NBTTagCompound internalInventorySlotNBT = internalInventoryNBT.getCompoundTagAt(i);
             int patternSlot = internalInventorySlotNBT.getInteger("patternSlot");
             NBTTagCompound patternSlotNBT = internalInventorySlotNBT.getCompoundTag("patternSlotNBT");
+            if (patternSlot < 0 || patternSlot >= internalInventory.length) continue;
             ItemStack pattern = ItemStack.loadItemStackFromNBT(patternSlotNBT.getCompoundTag("pattern"));
             if (pattern != null) {
-                internalInventory[patternSlot] = new PatternSlot<>(pattern, patternSlotNBT, this, i);
+                internalInventory[patternSlot] = new PatternSlot<>(pattern, patternSlotNBT, this, patternSlot);
             } else {
                 ScienceNotLeisure.LOG.warn(
                     "An error occurred while loading contents of ME Crafting Input Bus. This pattern has been voided: {}",
@@ -494,7 +498,7 @@ public class SuperCraftingInputHatchME extends MTEHatchInputBus
         // reconstruct patternDetailsPatternSlotMap
         patternDetailsPatternSlotMap.clear();
         for (PatternSlot<SuperCraftingInputHatchME> patternSlot : internalInventory) {
-            if (patternSlot != null) {
+            if (patternSlot != null && patternSlot.getPatternDetails() != null) {
                 patternDetailsPatternSlotMap.put(patternSlot.getPatternDetails(), patternSlot);
             }
         }
@@ -686,6 +690,7 @@ public class SuperCraftingInputHatchME extends MTEHatchInputBus
                     }
                 } catch (GridAccessException ignored) {}
                 internalInventory[index] = null;
+                unmapPatternSlot(originalPattern);
                 needPatternSync = true;
             } else {
                 return; // nothing has changed
@@ -693,15 +698,32 @@ public class SuperCraftingInputHatchME extends MTEHatchInputBus
         }
 
         // original does not exist or has changed
-        if (newItem == null || !(newItem.getItem() instanceof ICraftingPatternItem)) return;
+        if (newItem == null || !(newItem.getItem() instanceof ICraftingPatternItem)) {
+            refreshLastNonNullIndex();
+            return;
+        }
 
         PatternSlot<SuperCraftingInputHatchME> patternSlot = new PatternSlot<>(newItem, this, index);
         internalInventory[index] = patternSlot;
-        patternDetailsPatternSlotMap.put(patternSlot.getPatternDetails(), patternSlot);
+        if (patternSlot.getPatternDetails() != null) {
+            patternDetailsPatternSlotMap.put(patternSlot.getPatternDetails(), patternSlot);
+        }
 
         needPatternSync = true;
 
         refreshLastNonNullIndex();
+    }
+
+    private void unmapPatternSlot(PatternSlot<SuperCraftingInputHatchME> removed) {
+        ICraftingPatternDetails details = removed.getPatternDetails();
+        if (details == null || patternDetailsPatternSlotMap.get(details) != removed) return;
+        for (PatternSlot<SuperCraftingInputHatchME> slot : internalInventory) {
+            if (slot != null && details.equals(slot.getPatternDetails())) {
+                patternDetailsPatternSlotMap.put(details, slot);
+                return;
+            }
+        }
+        patternDetailsPatternSlotMap.remove(details);
     }
 
     public void refreshLastNonNullIndex() {
@@ -881,16 +903,20 @@ public class SuperCraftingInputHatchME extends MTEHatchInputBus
     @Override
     public boolean pushPattern(ICraftingPatternDetails patternDetails, InventoryCrafting table) {
         if (!isActive()) return false;
+        if (!getBaseMetaTileEntity().isAllowedToWork()) return false;
+
+        if (!(table instanceof MEInventoryCrafting meInventoryCrafting)) return false;
 
         if (!supportFluids) {
-            for (int i = 0; i < table.getSizeInventory(); ++i) {
-                ItemStack itemStack = table.getStackInSlot(i);
-                if (itemStack == null) continue;
-                if (itemStack.getItem() instanceof ItemFluidPacket) return false;
+            for (int i = 0; i < meInventoryCrafting.getSizeInventory(); ++i) {
+                IAEStack<?> stack = meInventoryCrafting.getAEStackInSlot(i);
+                if (stack instanceof IAEFluidStack) return false;
+                ItemStack itemStack = meInventoryCrafting.getStackInSlot(i);
+                if (itemStack != null && itemStack.getItem() instanceof ItemFluidPacket) return false;
             }
         }
-        if (!patternDetailsPatternSlotMap.get(patternDetails)
-            .insertItemsAndFluids(table)) {
+        PatternSlot<SuperCraftingInputHatchME> patternSlot = patternDetailsPatternSlotMap.get(patternDetails);
+        if (patternSlot == null || !patternSlot.insertItemsAndFluids(meInventoryCrafting)) {
             return false;
         }
         notifyWatchers();
@@ -1234,10 +1260,21 @@ public class SuperCraftingInputHatchME extends MTEHatchInputBus
 
             ItemStack[] sharedItems = this.parentMTE.getSharedItems();
             ItemStack[] manualInventory = getNonNullManualInventory();
-            IAEStack<?>[] patternInputs = this.patternDetails.getAEInputs();
+            List<IAEStack<?>> patternInputs = null;
+            if (this.patternDetails != null) {
+                try {
+                    CraftingGridCache cache = this.parentMTE.getProxy()
+                        .getGrid()
+                        .getCache(ICraftingGrid.class);
+                    patternInputs = TunnelPatternExpander.expandInputs(this.patternDetails.getAEInputs(), cache, null);
+                } catch (Exception ignored) {}
+                if (patternInputs == null) patternInputs = Arrays.asList(this.patternDetails.getAEInputs());
+            } else {
+                patternInputs = Collections.emptyList();
+            }
             ObjectArrayList<ItemStack> inputItems = new ObjectArrayList<>(
-                sharedItems.length + manualInventory.length + patternInputs.length);
-            ObjectArrayList<FluidStack> inputFluids = new ObjectArrayList<>(patternInputs.length);
+                sharedItems.length + manualInventory.length + patternInputs.size());
+            ObjectArrayList<FluidStack> inputFluids = new ObjectArrayList<>(patternInputs.size());
 
             Collections.addAll(inputItems, sharedItems);
 
@@ -1351,53 +1388,72 @@ public class SuperCraftingInputHatchME extends MTEHatchInputBus
                     entityItem.motionY = XSTR.XSTR_INSTANCE.nextGaussian() * 0.25;
                     entityItem.motionZ = XSTR.XSTR_INSTANCE.nextGaussian() * 0.05;
                     world.spawnEntityInWorld(entityItem);
+
+                    fluidStack.amount = 0;
                 }
             }
         }
 
-        public void insertItem(ItemStack inserted) {
+        private void insertItem(IAEItemStack inserted) {
+            List<ItemStack> splitStacks = new ObjectArrayList<>();
+            ItemStack compareStack = inserted.getItemStack();
             for (ItemStack itemStack : itemInventory) {
-                if (GTUtility.areStacksEqual(inserted, itemStack)) {
-                    if (itemStack.stackSize > Integer.MAX_VALUE - inserted.stackSize) {
-                        inserted.stackSize -= Integer.MAX_VALUE - itemStack.stackSize;
+                if (itemStack.stackSize == Integer.MAX_VALUE) continue;
+                if (GTUtility.areStacksEqual(compareStack, itemStack)) {
+                    if (inserted.getStackSize() > Integer.MAX_VALUE
+                        || itemStack.stackSize > Integer.MAX_VALUE - inserted.getStackSize()) {
+                        inserted.decStackSize(Integer.MAX_VALUE - itemStack.stackSize);
                         itemStack.stackSize = Integer.MAX_VALUE;
                     } else {
-                        itemStack.stackSize += inserted.stackSize;
+                        itemStack.stackSize += (int) inserted.getStackSize();
                         return;
                     }
                 }
             }
-            if (inserted.stackSize > 0) {
-                itemInventory.add(inserted);
+
+            while (inserted.getStackSize() > Integer.MAX_VALUE) {
+                splitStacks.add(inserted.getItemStack());
+                inserted.decStackSize(Integer.MAX_VALUE);
             }
+            if (inserted.getStackSize() > 0) {
+                splitStacks.add(inserted.getItemStack());
+            }
+            itemInventory.addAll(splitStacks);
         }
 
-        public void insertFluid(FluidStack inserted) {
+        private void insertFluid(IAEFluidStack inserted) {
+            List<FluidStack> splitStacks = new ObjectArrayList<>();
+            FluidStack compareStack = inserted.getFluidStack();
             for (FluidStack fluidStack : fluidInventory) {
-                if (GTUtility.areFluidsEqual(inserted, fluidStack)) {
-                    if (fluidStack.amount > Integer.MAX_VALUE - inserted.amount) {
-                        inserted.amount -= Integer.MAX_VALUE - fluidStack.amount;
+                if (fluidStack.amount == Integer.MAX_VALUE) continue;
+                if (GTUtility.areFluidsEqual(compareStack, fluidStack)) {
+                    if (inserted.getStackSize() > Integer.MAX_VALUE
+                        || fluidStack.amount > Integer.MAX_VALUE - inserted.getStackSize()) {
+                        inserted.decStackSize(Integer.MAX_VALUE - fluidStack.amount);
                         fluidStack.amount = Integer.MAX_VALUE;
                     } else {
-                        fluidStack.amount += inserted.amount;
+                        fluidStack.amount += (int) inserted.getStackSize();
                         return;
                     }
                 }
             }
-            if (inserted.amount > 0) {
-                fluidInventory.add(inserted);
+
+            while (inserted.getStackSize() > Integer.MAX_VALUE) {
+                splitStacks.add(inserted.getFluidStack());
+                inserted.decStackSize(Integer.MAX_VALUE);
             }
+            if (inserted.getStackSize() > 0) {
+                splitStacks.add(inserted.getFluidStack());
+            }
+            fluidInventory.addAll(splitStacks);
         }
 
-        public boolean insertItemsAndFluids(InventoryCrafting inventoryCrafting) {
+        public boolean insertItemsAndFluids(MEInventoryCrafting inventoryCrafting) {
             for (int i = 0; i < inventoryCrafting.getSizeInventory(); ++i) {
-                ItemStack itemStack = inventoryCrafting.getStackInSlot(i);
-                if (itemStack == null) continue;
-
-                if (itemStack.getItem() instanceof ItemFluidPacket) {
-                    FluidStack fluidStack = ItemFluidPacket.getFluidStack(itemStack);
-                    if (fluidStack != null) insertFluid(fluidStack);
-                } else {
+                IAEStack<?> stack = inventoryCrafting.getAEStackInSlot(i);
+                if (stack instanceof IAEFluidStack fluidStack) {
+                    insertFluid(fluidStack);
+                } else if (stack instanceof IAEItemStack itemStack) {
                     insertItem(itemStack);
                 }
             }

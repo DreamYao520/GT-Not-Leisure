@@ -281,11 +281,11 @@ public class AssemblerMatrix extends MultiMachineBase<AssemblerMatrix>
     }
 
     /**
-     * Returns whether this machine can still accept new dispatch work.
+     * Holds back AE dispatch while unformed or outside operating mode, where accepted work would not progress.
      */
     @Override
     public boolean isBusy() {
-        return !mMachine && machineMode == MODE_OPERATING;
+        return !mMachine || machineMode != MODE_OPERATING;
     }
 
     @Override
@@ -675,7 +675,7 @@ public class AssemblerMatrix extends MultiMachineBase<AssemblerMatrix>
             lEUt = 0;
             return CheckRecipeResultRegistry.SUCCESSFUL;
         } else if (isActive() && machineMode == MODE_OPERATING) {
-            if (mMaxSlots > 0 && !inventory.isEmpty() && tasks.hasPending()) {
+            if (tasks.hasPending() || tasks.hasReturns()) {
                 costingEUText = MathUtils.ZERO_STRING;
                 long parallel = mMaxParallelLong;
                 long maxInputEU = wirelessMode ? MathUtils.toLongSafe(WirelessNetworkManager.getUserEU(ownerUUID))
