@@ -24,7 +24,7 @@ public class CelestweavePreciseAssemblerRecipes implements IRecipePool {
         RecipeBuilder.builder()
             .itemInputs(
                 GTOreDictUnificator.get(OrePrefixes.plateDouble, Materials.Naquadria, 8),
-                GTOreDictUnificator.get(OrePrefixes.foil, Materials.NetherStar, 4),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Netherite, 4),
                 GTOreDictUnificator.get(OrePrefixes.circuit, Materials.ZPM, 16),
                 ItemList.Field_Generator_ZPM.get(2))
             .fluidInputs(Materials.SolderingAlloy.getMolten(4608), Materials.Helium.getGas(4000))
