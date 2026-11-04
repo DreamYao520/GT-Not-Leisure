@@ -8,6 +8,7 @@ import com.science.gtnl.api.IRecipePool;
 import com.science.gtnl.common.item.items.equipment.EnergyModuleItem;
 import com.science.gtnl.common.railgun.RailgunModule;
 import com.science.gtnl.loader.ItemLoader;
+import com.science.gtnl.utils.enums.GTNLItemList;
 
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.ItemList;
@@ -24,13 +25,15 @@ public class RailgunRecipes implements IRecipePool {
     public void loadRecipes() {
         GTValues.RA.stdBuilder()
             .itemInputs(
+                GTOreDictUnificator.get(OrePrefixes.lens, Materials.NetherStar, 1),
                 GTOreDictUnificator.get(OrePrefixes.plateDouble, Materials.Neutronium, 4),
                 GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UV, 2),
                 ItemList.Emitter_UV.get(2),
                 ItemList.Field_Generator_UV.get(1),
-                ItemList.Electric_Motor_UV.get(2))
+                ItemList.Electric_Motor_UV.get(2),
+                GTNLItemList.SuperDenseEnergyCell.get(1))
             .fluidInputs(Materials.SolderingAlloy.getMolten(2304))
-            .itemOutputs(new ItemStack(ItemLoader.electromagneticRailgun))
+            .itemOutputs(GTNLItemList.ElectromagneticRailgun.get(1))
             .duration(1200)
             .eut(TierEU.RECIPE_UV)
             .addTo(RecipeMaps.assemblerRecipes);
