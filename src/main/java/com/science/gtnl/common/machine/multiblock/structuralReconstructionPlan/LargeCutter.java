@@ -111,6 +111,11 @@ public class LargeCutter extends GTMMultiMachineBase<LargeCutter> implements ISu
             true);
     }
 
+    @Override
+    public RecipeMap<?> getRecipeMap() {
+        return RecipeMaps.cutterRecipes;
+    }
+
     @NotNull
     @Override
     public Collection<RecipeMap<?>> getAvailableRecipeMaps() {
