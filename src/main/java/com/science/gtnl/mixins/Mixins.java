@@ -264,6 +264,10 @@ public enum Mixins implements IMixins {
         .setPhase(Phase.LATE)
         .addRequiredMod(ModList.ThaumicEnergistics)),
 
+    THAUMCRAFT_CELESTWEAVE(new MixinBuilder("Celestweave wand capacity compatibility")
+        .addCommonMixins("thaumcraft.MixinItemWandCastingCelestweave")
+        .setPhase(Phase.LATE)),
+
     THAUMCRAFT_CLIENT(
         new MixinBuilder("Thaumcraft client compatibility mixins").addClientMixins("thaumcraft.MixinTileJarRenderer")
             .setPhase(Phase.LATE)

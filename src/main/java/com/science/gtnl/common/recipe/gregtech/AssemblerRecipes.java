@@ -1,7 +1,9 @@
 package com.science.gtnl.common.recipe.gregtech;
 
 import static bartworks.common.loaders.ItemRegistry.bw_realglas;
+import static gregtech.api.util.GTRecipeBuilder.INGOTS;
 import static gregtech.api.util.GTRecipeBuilder.SECONDS;
+import static gregtech.api.util.GTRecipeBuilder.WILDCARD;
 
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -14,10 +16,12 @@ import com.reavaritia.utils.enums.ReAvaItemList;
 import com.science.gtnl.api.IRecipePool;
 import com.science.gtnl.common.material.GTNLMaterials;
 import com.science.gtnl.common.material.GTNLRecipeMaps;
+import com.science.gtnl.common.railgun.RailgunModule;
 import com.science.gtnl.compat.cropsnh.CropsNHRecipes;
 import com.science.gtnl.compat.newhorizons.NHCoreRecipes;
 import com.science.gtnl.config.RecipeConfig;
 import com.science.gtnl.loader.BlockLoader;
+import com.science.gtnl.loader.ItemLoader;
 import com.science.gtnl.utils.enums.GTNLItemList;
 import com.science.gtnl.utils.enums.ModsItemlist;
 import com.science.gtnl.utils.item.ItemUtils;
@@ -3614,216 +3618,301 @@ public class AssemblerRecipes implements IRecipePool {
             .eut(TierEU.RECIPE_LV)
             .addTo(As);
 
-        RecipeBuilder.builder()
-            .circuit(1)
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Titanium, 8),
-                GTOreDictUnificator.get(OrePrefixes.stick, Materials.StainlessSteel, 4),
-                GTOreDictUnificator.get(OrePrefixes.screw, Materials.Titanium, 8),
-                ItemList.Sensor_IV.get(2),
-                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Aluminium, 8))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(576), GTModHandler.getIC2Coolant(500))
-            .itemOutputs(GTNLItemList.CelestweaveOculus.get(1))
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_IV)
-            .addTo(As);
+        loadCelestweaveRecipes();
+        loadRailgunRecipes();
+    }
 
+    private void loadCelestweaveRecipes() {
         RecipeBuilder.builder()
-            .circuit(2)
             .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Iridium, 8),
-                GTOreDictUnificator.get(OrePrefixes.stick, Materials.StainlessSteel, 4),
-                GTOreDictUnificator.get(OrePrefixes.screw, Materials.Iridium, 8),
-                ItemList.Field_Generator_IV.get(1),
-                ItemList.IC2_EnergyCrystal.get(1),
-                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Aluminium, 8))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(576), GTModHandler.getIC2Coolant(500))
-            .itemOutputs(GTNLItemList.CelestweaveCore.get(1))
+                GTModHandler.getIC2Item("quantumHelmet", 1, WILDCARD),
+                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plate, 5),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.LuV, 2),
+                ItemList.Sensor_IV.get(2),
+                ItemList.Emitter_IV.get(1),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Polybenzimidazole, 16),
+                GTOreDictUnificator.get(OrePrefixes.wireGt04, Materials.SuperconductorIV, 4),
+                GTOreDictUnificator.get(OrePrefixes.screw, Materials.Iridium, 8))
+            .circuit(1)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(8 * INGOTS))
+            .itemOutputs(GTNLItemList.CelestweaveOculus.get(1))
             .duration(60 * SECONDS)
             .eut(TierEU.RECIPE_IV)
             .addTo(As);
 
         RecipeBuilder.builder()
-            .circuit(3)
             .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.TungstenCarbide, 8),
-                GTOreDictUnificator.get(OrePrefixes.stick, Materials.StainlessSteel, 4),
-                GTOreDictUnificator.get(OrePrefixes.ring, Materials.TungstenCarbide, 4),
-                ItemList.Electric_Motor_IV.get(2),
-                GTOreDictUnificator.get(OrePrefixes.wireGt04, Materials.SuperconductorIV, 4),
-                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Aluminium, 8))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(576), GTModHandler.getIC2Coolant(500))
+                GTModHandler.getIC2Item("quantumBodyarmor", 1, WILDCARD),
+                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plate, 8),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.LuV, 4),
+                ItemList.Field_Generator_IV.get(2),
+                ItemList.Electric_Pump_IV.get(2),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Polybenzimidazole, 32),
+                GTOreDictUnificator.get(OrePrefixes.wireGt04, Materials.SuperconductorIV, 8),
+                GTOreDictUnificator.get(OrePrefixes.screw, Materials.Iridium, 16))
+            .circuit(2)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(16 * INGOTS))
+            .itemOutputs(GTNLItemList.CelestweaveCore.get(1))
+            .duration(90 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(As);
+
+        RecipeBuilder.builder()
+            .itemInputs(
+                GTModHandler.getIC2Item("quantumLeggings", 1, WILDCARD),
+                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plate, 7),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.LuV, 2),
+                ItemList.Electric_Motor_IV.get(4),
+                ItemList.Electric_Piston_IV.get(2),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Polybenzimidazole, 24),
+                GTOreDictUnificator.get(OrePrefixes.wireGt04, Materials.SuperconductorIV, 8),
+                GTOreDictUnificator.get(OrePrefixes.screw, Materials.Iridium, 12))
+            .circuit(3)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(12 * INGOTS))
             .itemOutputs(GTNLItemList.CelestweaveConduit.get(1))
+            .duration(75 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(As);
+
+        RecipeBuilder.builder()
+            .itemInputs(
+                GTModHandler.getIC2Item("quantumBoots", 1, WILDCARD),
+                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plate, 4),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.LuV, 2),
+                ItemList.Electric_Piston_IV.get(4),
+                ItemList.Electric_Motor_IV.get(2),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Polybenzimidazole, 16),
+                GTOreDictUnificator.get(OrePrefixes.wireGt04, Materials.SuperconductorIV, 4),
+                GTOreDictUnificator.get(OrePrefixes.spring, Materials.HSSS, 4))
+            .circuit(4)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(8 * INGOTS))
+            .itemOutputs(GTNLItemList.CelestweaveStride.get(1))
+            .duration(60 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(As);
+
+        if (Mods.Forestry.isModLoaded()) {
+            RecipeBuilder.builder()
+                .itemInputs(
+                    GTModHandler.getModItem(Mods.Forestry.ID, "apiaristHelmet", 1, WILDCARD),
+                    GTModHandler.getModItem(Mods.Forestry.ID, "apiaristChest", 1, WILDCARD),
+                    GTModHandler.getModItem(Mods.Forestry.ID, "apiaristLegs", 1, WILDCARD),
+                    GTModHandler.getModItem(Mods.Forestry.ID, "apiaristBoots", 1, WILDCARD),
+                    GTOreDictUnificator.get(OrePrefixes.plate, Materials.Titanium, 4),
+                    GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2),
+                    ItemList.Sensor_IV.get(1),
+                    ModsItemlist.ForestryBeeswax.get(16))
+                .circuit(11)
+                .fluidInputs(Materials.SolderingAlloy.getMolten(4 * INGOTS))
+                .itemOutputs(GTNLItemList.CelestweaveModuleApiarist.get(1))
+                .duration(30 * SECONDS)
+                .eut(TierEU.RECIPE_IV)
+                .addTo(As);
+        }
+
+        RecipeBuilder.builder()
+            .itemInputs(
+                GTModHandler.getModItem(Mods.IndustrialCraft2.ID, "itemNightvisionGoggles", 1, WILDCARD),
+                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plate, 2),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2),
+                ItemList.Sensor_IV.get(1),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.ReinforcedGlass, 2),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Polybenzimidazole, 8))
+            .circuit(12)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(4 * INGOTS))
+            .itemOutputs(GTNLItemList.CelestweaveModuleNightVision.get(1))
+            .duration(20 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(As);
+
+        RecipeBuilder.builder()
+            .itemInputs(
+                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plate, 4),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2),
+                ItemList.Electric_Pump_IV.get(2),
+                ItemList.Sensor_IV.get(1),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Polybenzimidazole, 4),
+                ItemList.IC2_Food_Can_Filled.get(16),
+                new ItemStack(Items.golden_apple, 4))
+            .circuit(13)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(8 * INGOTS))
+            .itemOutputs(GTNLItemList.CelestweaveModuleSaturation.get(1))
             .duration(45 * SECONDS)
             .eut(TierEU.RECIPE_IV)
             .addTo(As);
 
         RecipeBuilder.builder()
-            .circuit(4)
             .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.StainlessSteel, 8),
-                GTOreDictUnificator.get(OrePrefixes.stick, Materials.StainlessSteel, 4),
-                GTOreDictUnificator.get(OrePrefixes.ring, Materials.StainlessSteel, 4),
-                ItemList.Electric_Piston_IV.get(2),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Rubber, 4),
-                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Aluminium, 8))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(576), GTModHandler.getIC2Coolant(500))
-            .itemOutputs(GTNLItemList.CelestweaveStride.get(1))
+                GTModHandler.getModItem(Mods.IndustrialCraft2.ID, "itemArmorHazmatHelmet", 1, WILDCARD),
+                GTModHandler.getModItem(Mods.IndustrialCraft2.ID, "itemArmorHazmatChestplate", 1, WILDCARD),
+                GTModHandler.getModItem(Mods.IndustrialCraft2.ID, "itemArmorHazmatLeggings", 1, WILDCARD),
+                GTModHandler.getModItem(Mods.IndustrialCraft2.ID, "itemArmorRubBoots", 1, WILDCARD),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Polybenzimidazole, 8),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Lead, 8),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Titanium, 4),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2))
+            .circuit(19)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(4 * INGOTS))
+            .itemOutputs(GTNLItemList.CelestweaveModuleHazard.get(1))
+            .duration(45 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(As);
+
+        RecipeBuilder.builder()
+            .itemInputs(
+                ItemList.QuantumEye.get(2),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.DarkSteel, 8),
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Enderium, 4),
+                new ItemStack(Items.writable_book),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2),
+                ItemList.Sensor_IV.get(1),
+                ItemList.Field_Generator_EV.get(1))
+            .circuit(20)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(8 * INGOTS))
+            .itemOutputs(GTNLItemList.CelestweaveModuleSoulbound.get(1))
+            .duration(45 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(As);
+
+        RecipeBuilder.builder()
+            .itemInputs(
+                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Titanium, 4),
+                GTOreDictUnificator.get(OrePrefixes.ring, Materials.StainlessSteel, 8),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2),
+                ItemList.Conveyor_Module_IV.get(2),
+                ItemList.Robot_Arm_IV.get(1),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Polybenzimidazole, 16),
+                new ItemStack(Blocks.chest))
+            .circuit(23)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(4 * INGOTS))
+            .itemOutputs(GTNLItemList.CelestweaveModuleBackpack.get(1))
             .duration(30 * SECONDS)
             .eut(TierEU.RECIPE_IV)
             .addTo(As);
 
         RecipeBuilder.builder()
-            .circuit(11)
             .itemInputs(
                 WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plate, 4),
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.screw, 8),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.LuV, 2),
-                ItemList.Sensor_LuV.get(1),
-                ItemList.Emitter_LuV.get(1))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(1152), Materials.HSSG.getMolten(576))
-            .itemOutputs(GTNLItemList.CelestweaveModuleApiarist.get(1))
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(As);
-
-        RecipeBuilder.builder()
-            .circuit(12)
-            .itemInputs(
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plate, 4),
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.screw, 8),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.LuV, 2),
-                ItemList.Sensor_LuV.get(1),
-                ModsItemlist.ThaumcraftFocusPrimal.get(2))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(1152), Materials.HSSG.getMolten(576))
-            .itemOutputs(GTNLItemList.CelestweaveModuleNightVision.get(1))
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(As);
-
-        RecipeBuilder.builder()
-            .circuit(13)
-            .itemInputs(
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plate, 4),
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.screw, 8),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.LuV, 2),
-                ItemList.Electric_Pump_LuV.get(1),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Rubber, 4))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(1152), Materials.HSSG.getMolten(576))
-            .itemOutputs(GTNLItemList.CelestweaveModuleSaturation.get(1))
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(As);
-
-        RecipeBuilder.builder()
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2),
+                ItemList.Electric_Piston_IV.get(4),
+                ItemList.Electric_Motor_IV.get(4),
+                GTOreDictUnificator.get(OrePrefixes.spring, Materials.HSSS, 4),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Polybenzimidazole, 16))
             .circuit(15)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(8 * INGOTS))
+            .itemOutputs(GTNLItemList.CelestweaveModuleWalkAssist.get(1))
+            .duration(45 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(As);
+
+        RecipeBuilder.builder()
             .itemInputs(
                 WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plate, 4),
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.stick, 8),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.LuV, 2),
-                ItemList.Electric_Piston_LuV.get(1),
-                GTOreDictUnificator.get(OrePrefixes.spring, Materials.TungstenSteel, 4))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(1152), Materials.HSSG.getMolten(576))
-            .itemOutputs(GTNLItemList.CelestweaveModuleWalkAssist.get(1))
-            .duration(30 * SECONDS)
-            .eut(TierEU.RECIPE_LuV)
-            .addTo(As);
-
-        RecipeBuilder.builder()
-            .circuit(14)
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Naquadria, 4),
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.ring, 4),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.ZPM, 2),
-                ItemList.Sensor_ZPM.get(1),
-                ModsItemlist.ThaumcraftFocusPrimal.get(2))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(2304), Materials.Helium.getGas(1000))
-            .itemOutputs(GTNLItemList.CelestweaveModuleRevealing.get(1))
-            .duration(40 * SECONDS)
-            .eut(TierEU.RECIPE_ZPM)
-            .addTo(As);
-
-        RecipeBuilder.builder()
-            .circuit(16)
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Naquadria, 4),
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.ring, 4),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.ZPM, 2),
-                ItemList.Sensor_ZPM.get(1),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.ReinforcedGlass, 4))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(2304), Materials.Helium.getGas(1000))
-            .itemOutputs(GTNLItemList.CelestweaveModuleHolo.get(1))
-            .duration(40 * SECONDS)
-            .eut(TierEU.RECIPE_ZPM)
-            .addTo(As);
-
-        RecipeBuilder.builder()
-            .circuit(19)
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Naquadria, 4),
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.screw, 8),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.ZPM, 2),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Polybenzimidazole, 8),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Iridium, 4))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(2304), Materials.Helium.getGas(1000))
-            .itemOutputs(GTNLItemList.CelestweaveModuleHazard.get(1))
-            .duration(40 * SECONDS)
-            .eut(TierEU.RECIPE_ZPM)
-            .addTo(As);
-
-        RecipeBuilder.builder()
-            .circuit(20)
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Naquadria, 4),
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.screw, 8),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.ZPM, 2),
-                ModsItemlist.ForbiddenMagicEldritchOrb.get(2),
-                ItemList.Sensor_ZPM.get(1))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(2304), Materials.Helium.getGas(1000))
-            .itemOutputs(GTNLItemList.CelestweaveModuleSoulbound.get(1))
-            .duration(40 * SECONDS)
-            .eut(TierEU.RECIPE_ZPM)
-            .addTo(As);
-
-        RecipeBuilder.builder()
-            .circuit(21)
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Naquadria, 4),
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.stick, 8),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.ZPM, 2),
-                GTOreDictUnificator.get(OrePrefixes.spring, Materials.HSSS, 4))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(2304), Materials.Helium.getGas(1000))
-            .itemOutputs(GTNLItemList.CelestweaveModuleReach.get(1))
-            .duration(40 * SECONDS)
-            .eut(TierEU.RECIPE_ZPM)
-            .addTo(As);
-
-        RecipeBuilder.builder()
-            .circuit(23)
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Naquadria, 4),
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.ring, 4),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.ZPM, 2),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.DarkSteel, 8))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(2304), Materials.Helium.getGas(1000))
-            .itemOutputs(GTNLItemList.CelestweaveModuleBackpack.get(1))
-            .duration(40 * SECONDS)
-            .eut(TierEU.RECIPE_ZPM)
-            .addTo(As);
-
-        RecipeBuilder.builder()
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2),
+                ItemList.Electric_Motor_IV.get(2),
+                ItemList.Sensor_IV.get(1),
+                GTOreDictUnificator.get(OrePrefixes.toolHeadDrill, Materials.TungstenSteel, 1),
+                GTOreDictUnificator.get(OrePrefixes.gearGtSmall, Materials.TungstenCarbide, 4))
             .circuit(27)
-            .itemInputs(
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.Naquadria, 4),
-                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.stick, 8),
-                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.ZPM, 2),
-                ItemList.Electric_Motor_ZPM.get(1),
-                GTOreDictUnificator.get(OrePrefixes.plate, Materials.TungstenCarbide, 8))
-            .fluidInputs(Materials.SolderingAlloy.getMolten(2304), Materials.Helium.getGas(1000))
+            .fluidInputs(Materials.SolderingAlloy.getMolten(8 * INGOTS))
             .itemOutputs(GTNLItemList.CelestweaveModuleDigAffinity.get(1))
-            .duration(40 * SECONDS)
-            .eut(TierEU.RECIPE_ZPM)
+            .duration(45 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(As);
+
+        RecipeBuilder.builder()
+            .itemInputs(
+                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plate, 8),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.LuV, 4),
+                ItemList.Robot_Arm_LuV.get(4),
+                ItemList.Sensor_LuV.get(2),
+                ItemList.Emitter_LuV.get(2),
+                GTOreDictUnificator.get(OrePrefixes.lens, Materials.NetherStar, 2),
+                GTOreDictUnificator.get(OrePrefixes.spring, Materials.HSSS, 4))
+            .circuit(21)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(16 * INGOTS))
+            .itemOutputs(GTNLItemList.CelestweaveModuleReach.get(1))
+            .duration(60 * SECONDS)
+            .eut(TierEU.RECIPE_LuV)
             .addTo(As);
     }
 
+    private void loadRailgunRecipes() {
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                GTOreDictUnificator.get(OrePrefixes.lens, Materials.NetherStar, 1),
+                GTOreDictUnificator.get(OrePrefixes.plateDouble, Materials.Neutronium, 4),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.UV, 2),
+                ItemList.Emitter_UV.get(2),
+                ItemList.Field_Generator_UV.get(1),
+                ItemList.Electric_Motor_UV.get(2),
+                GTNLItemList.SuperDenseEnergyCell.get(1))
+            .fluidInputs(Materials.SolderingAlloy.getMolten(2304))
+            .itemOutputs(GTNLItemList.ElectromagneticRailgun.get(1))
+            .duration(1200)
+            .eut(TierEU.RECIPE_UV)
+            .addTo(As);
+        ItemStack[] parts = { ItemList.Sensor_UV.get(1), ItemList.Electric_Motor_UV.get(1), ItemList.Emitter_UV.get(1),
+            ItemList.Field_Generator_UV.get(2) };
+        for (RailgunModule type : RailgunModule.values()) {
+            boolean uhv = type == RailgunModule.EHV_BEAM;
+            GTValues.RA.stdBuilder()
+                .itemInputs(
+                    GTOreDictUnificator.get(OrePrefixes.circuit, uhv ? Materials.UHV : Materials.UV, 2),
+                    GTOreDictUnificator.get(OrePrefixes.plateDouble, Materials.Neutronium, 2),
+                    parts[type.ordinal()])
+                .fluidInputs(Materials.SolderingAlloy.getMolten(576))
+                .itemOutputs(ItemLoader.railgunModule.stack(type))
+                .duration(400)
+                .eut(uhv ? TierEU.RECIPE_UHV : TierEU.RECIPE_UV)
+                .addTo(As);
+        }
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                ItemList.Energy_LapotronicOrb.get(1),
+                GTOreDictUnificator.get(OrePrefixes.plateDouble, Materials.Titanium, 4),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.IV, 2),
+                ItemList.Field_Generator_EV.get(2),
+                GTOreDictUnificator.get(OrePrefixes.wireGt04, Materials.SuperconductorIV, 4),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Polybenzimidazole, 16))
+            .circuit(1)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(8 * INGOTS))
+            .itemOutputs(ItemLoader.energyModule.stack(1))
+            .duration(45 * SECONDS)
+            .eut(TierEU.RECIPE_IV)
+            .addTo(As);
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                ItemLoader.energyModule.stack(1),
+                ItemList.Energy_LapotronicOrb2.get(1),
+                WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.plateDouble, 4),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.LuV, 4),
+                ItemList.Field_Generator_LuV.get(2),
+                GTOreDictUnificator.get(OrePrefixes.wireGt04, Materials.SuperconductorLuV, 8),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Polybenzimidazole, 32))
+            .circuit(2)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(16 * INGOTS))
+            .itemOutputs(ItemLoader.energyModule.stack(2))
+            .duration(60 * SECONDS)
+            .eut(TierEU.RECIPE_LuV)
+            .addTo(As);
+
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                ItemLoader.energyModule.stack(2),
+                ItemList.Energy_Module.get(1),
+                GTOreDictUnificator.get(OrePrefixes.plateDouble, Materials.Naquadria, 4),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.ZPM, 4),
+                ItemList.Field_Generator_ZPM.get(2),
+                GTOreDictUnificator.get(OrePrefixes.wireGt04, Materials.SuperconductorZPM, 8),
+                GTOreDictUnificator.get(OrePrefixes.foil, Materials.Polybenzimidazole, 64))
+            .circuit(3)
+            .fluidInputs(Materials.SolderingAlloy.getMolten(32 * INGOTS))
+            .itemOutputs(ItemLoader.energyModule.stack(3))
+            .duration(90 * SECONDS)
+            .eut(TierEU.RECIPE_ZPM)
+            .addTo(As);
+    }
 }

@@ -26,7 +26,6 @@ import com.science.gtnl.common.recipe.gregtech.AutoclaveRecipes;
 import com.science.gtnl.common.recipe.gregtech.BacterialVatRecipes;
 import com.science.gtnl.common.recipe.gregtech.BlastFurnaceRecipes;
 import com.science.gtnl.common.recipe.gregtech.CannerRecipes;
-import com.science.gtnl.common.recipe.gregtech.CelestweavePreciseAssemblerRecipes;
 import com.science.gtnl.common.recipe.gregtech.CentrifugeRecipes;
 import com.science.gtnl.common.recipe.gregtech.ChemicalBathRecipes;
 import com.science.gtnl.common.recipe.gregtech.ChemicalDehydratorRecipes;
@@ -60,7 +59,6 @@ import com.science.gtnl.common.recipe.gregtech.PCBFactoryRecipes;
 import com.science.gtnl.common.recipe.gregtech.PlasmaForgeRecipes;
 import com.science.gtnl.common.recipe.gregtech.PreciseAssemblerRecipes;
 import com.science.gtnl.common.recipe.gregtech.QuantumForceTransformerRecipes;
-import com.science.gtnl.common.recipe.gregtech.RailgunRecipes;
 import com.science.gtnl.common.recipe.gregtech.ReactorProcessingUnitRecipes;
 import com.science.gtnl.common.recipe.gregtech.SpaceAssemblerRecipes;
 import com.science.gtnl.common.recipe.gregtech.TargetChamberRecipes;
@@ -191,25 +189,24 @@ public class RecipeLoader implements IContentLoader {
             new ElementCopyingRecipes(), new AlloySmelterRecipes(), new MolecularTransformerRecipes(),
             new NaquadahReactorRecipes(), new DragonEvolutionFusionCraftingRecipes(), new LaserEngraverRecipes(),
             new BacterialVatRecipes(), new CuttingRecipes(), new BlastFurnaceRecipes(), new FluidExtractorRecipes(),
-            new ElectricImplosionCompressorRecipes(), new DecayHastenerRecipes(),
-            new CelestweavePreciseAssemblerRecipes(), new PreciseAssemblerRecipes(), new FuelRefiningComplexRecipes(),
-            new CrackingRecipes(), new DistillationTowerRecipes(), new SpaceMinerRecipes(), new SpaceDrillRecipes(),
-            new SpaceAssemblerRecipes(), new PCBFactoryRecipes(), new PlatinumBasedTreatmentRecipes(),
-            new ShallowChemicalCouplingRecipes(), new TreeDiagramRecipes(), new AssemblingLineRecipes(),
-            new GasCollectorRecipes(), new EternalGregTechWorkshopUpgradeRecipes(), new CannerRecipes(),
-            new VacuumFreezerRecipes(), new CheatOreProcessingRecipes(), new ShapedArcaneCraftingRecipes(),
-            new InfusionCraftingRecipes(), new SteamManufacturerRecipes(), new SteamCarpenterRecipe(),
-            new LavaMakerRecipes(), new SteamWoodcutterRecipes(), new SteamGateAssemblerRecipes(),
-            new CactusWonderFakeRecipes(), new InfernalCokeRecipes(), new SteamFusionReactorRecipes(),
-            new SteamExtractinatorRecipes(), new RockBreakerRecipes(), new PrimitiveBrickKilnRecipes(),
-            new TargetChamberRecipes(), new ElectrocellGeneratorRecipes(), new FluidSolidifierRecipes(),
-            new FormingPressRecipes(), new HammerRecipes(), new CyclotronRecipes(), new RuneAltarRecipes(),
-            new IndustrialRockCrusherRecipes(), new PrecisionLaserEngraver(), new NanitesIntegratedProcessingRecipes(),
-            new NanoForgeRecipes(), new SteamWeatherModuleRecipes(), new ElectricNeutronActivatorRecipes(),
-            new ReactorProcessingUnitRecipes(), new NuclearSaltProcessingPlantRecipes(), new MaceratorRecipes(),
-            new QuantumForceTransformerRecipes(), new MicroorganismMasterRecipes(), new SolarMuonCatalystRecipes(),
-            new CircuitAssemblerRecipes(), new CircuitAssemblyLineRecipes(), new WoodDistillationRecipes(),
-            new CrucibleCraftingRecipes(), new RailgunRecipes() };
+            new ElectricImplosionCompressorRecipes(), new DecayHastenerRecipes(), new PreciseAssemblerRecipes(),
+            new FuelRefiningComplexRecipes(), new CrackingRecipes(), new DistillationTowerRecipes(),
+            new SpaceMinerRecipes(), new SpaceDrillRecipes(), new SpaceAssemblerRecipes(), new PCBFactoryRecipes(),
+            new PlatinumBasedTreatmentRecipes(), new ShallowChemicalCouplingRecipes(), new TreeDiagramRecipes(),
+            new AssemblingLineRecipes(), new GasCollectorRecipes(), new EternalGregTechWorkshopUpgradeRecipes(),
+            new CannerRecipes(), new VacuumFreezerRecipes(), new CheatOreProcessingRecipes(),
+            new ShapedArcaneCraftingRecipes(), new InfusionCraftingRecipes(), new SteamManufacturerRecipes(),
+            new SteamCarpenterRecipe(), new LavaMakerRecipes(), new SteamWoodcutterRecipes(),
+            new SteamGateAssemblerRecipes(), new CactusWonderFakeRecipes(), new InfernalCokeRecipes(),
+            new SteamFusionReactorRecipes(), new SteamExtractinatorRecipes(), new RockBreakerRecipes(),
+            new PrimitiveBrickKilnRecipes(), new TargetChamberRecipes(), new ElectrocellGeneratorRecipes(),
+            new FluidSolidifierRecipes(), new FormingPressRecipes(), new HammerRecipes(), new CyclotronRecipes(),
+            new RuneAltarRecipes(), new IndustrialRockCrusherRecipes(), new PrecisionLaserEngraver(),
+            new NanitesIntegratedProcessingRecipes(), new NanoForgeRecipes(), new SteamWeatherModuleRecipes(),
+            new ElectricNeutronActivatorRecipes(), new ReactorProcessingUnitRecipes(),
+            new NuclearSaltProcessingPlantRecipes(), new MaceratorRecipes(), new QuantumForceTransformerRecipes(),
+            new MicroorganismMasterRecipes(), new SolarMuonCatalystRecipes(), new CircuitAssemblerRecipes(),
+            new CircuitAssemblyLineRecipes(), new WoodDistillationRecipes(), new CrucibleCraftingRecipes() };
 
         for (IRecipePool recipePool : recipePools) {
             recipePool.loadRecipes();
