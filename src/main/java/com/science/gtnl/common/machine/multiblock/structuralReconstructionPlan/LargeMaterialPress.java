@@ -79,7 +79,6 @@ public class LargeMaterialPress extends GTMMultiMachineBase<LargeMaterialPress> 
                         HatchElement.InputHatch,
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy),
                         ParallelCon)
                     .buildAndChain(

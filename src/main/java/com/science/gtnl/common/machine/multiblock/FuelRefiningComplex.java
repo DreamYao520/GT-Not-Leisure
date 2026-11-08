@@ -102,7 +102,6 @@ public class FuelRefiningComplex extends GTMMultiMachineBase<FuelRefiningComplex
                         HatchElement.InputBus,
                         HatchElement.InputHatch,
                         HatchElement.OutputHatch,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy),
                         ParallelCon)
                     .buildAndChain(

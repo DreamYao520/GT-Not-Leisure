@@ -163,7 +163,6 @@ public class TreeDiagram extends WirelessEnergyMultiMachineBase<TreeDiagram> imp
                         HatchElement.InputHatch,
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy),
                         ParallelCon)
                     .buildAndChain(

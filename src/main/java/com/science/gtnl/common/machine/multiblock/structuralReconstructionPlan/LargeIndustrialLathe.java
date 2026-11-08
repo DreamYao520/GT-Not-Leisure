@@ -73,7 +73,6 @@ public class LargeIndustrialLathe extends GTMMultiMachineBase<LargeIndustrialLat
                         HatchElement.Maintenance,
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy),
                         ParallelCon)
                     .buildAndChain(

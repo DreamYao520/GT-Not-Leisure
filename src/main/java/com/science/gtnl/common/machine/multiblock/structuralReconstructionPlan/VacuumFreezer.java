@@ -82,7 +82,6 @@ public class VacuumFreezer extends MultiMachineBase<VacuumFreezer> implements IS
                         HatchElement.OutputHatch,
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
-                        HatchElement.Maintenance,
                         HatchElement.Energy)
                     .buildAndChain(
                         StructureUtility

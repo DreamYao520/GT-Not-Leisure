@@ -74,7 +74,6 @@ public class AdvancedRareEarthCentrifugal extends GTMMultiMachineBase<AdvancedRa
                         HatchElement.Maintenance,
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy),
                         ParallelCon)
                     .buildAndChain(

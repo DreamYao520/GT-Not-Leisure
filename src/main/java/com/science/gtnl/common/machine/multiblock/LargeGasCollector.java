@@ -85,7 +85,6 @@ public class LargeGasCollector extends MultiMachineBase<LargeGasCollector> imple
                         HatchElement.OutputHatch,
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy))
                     .buildAndChain(
                         StructureUtility

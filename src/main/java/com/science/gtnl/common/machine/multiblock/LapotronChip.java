@@ -100,7 +100,6 @@ public class LapotronChip extends MultiMachineBase<LapotronChip>
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
                         HatchElement.InputHatch,
-                        HatchElement.Maintenance,
                         HatchElement.Energy,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy))
                     .casingIndex(Casings.RadiantNaquadahAlloyCasing.getTextureId())

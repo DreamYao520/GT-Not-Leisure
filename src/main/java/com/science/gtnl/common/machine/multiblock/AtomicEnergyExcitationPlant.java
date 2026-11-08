@@ -267,7 +267,6 @@ public class AtomicEnergyExcitationPlant extends GTMMultiMachineBase<AtomicEnerg
                         HatchElement.InputBus,
                         HatchElement.InputHatch,
                         HatchElement.OutputHatch,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy),
                         ParallelCon)
                     .buildAndChain(

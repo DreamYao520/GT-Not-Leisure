@@ -69,7 +69,6 @@ public class LargeWiremill extends GTMMultiMachineBase<LargeWiremill> implements
                         HatchElement.Maintenance,
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy),
                         ParallelCon)
                     .buildAndChain(

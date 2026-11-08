@@ -117,7 +117,6 @@ public class ComponentAssembler extends MultiMachineBase<ComponentAssembler> imp
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
                         HatchElement.InputHatch,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy))
                     .casingIndex(getCasingTextureID())
                     .hint(1)

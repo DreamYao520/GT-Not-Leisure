@@ -112,7 +112,6 @@ public class ProcessingArray extends MultiMachineBase<ProcessingArray> implement
                         HatchElement.OutputHatch,
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
-                        HatchElement.Maintenance,
                         HatchElement.Energy)
                     .casingIndex(getCasingTextureID())
                     .hint(1)

@@ -78,7 +78,6 @@ public class LargePacker extends GTMMultiMachineBase<LargePacker> implements ISu
                         HatchElement.Maintenance,
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy),
                         ParallelCon)
                     .buildAndChain(

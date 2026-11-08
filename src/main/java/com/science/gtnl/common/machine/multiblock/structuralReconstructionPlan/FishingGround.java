@@ -80,7 +80,6 @@ public class FishingGround extends GTMMultiMachineBase<FishingGround> implements
                         HatchElement.InputBus,
                         HatchElement.InputHatch,
                         HatchElement.OutputBus,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy),
                         ParallelCon)
                     .buildAndChain(

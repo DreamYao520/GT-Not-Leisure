@@ -130,7 +130,6 @@ public class LargeDistillery extends GTMMultiMachineBase<LargeDistillery> implem
                             HatchElement.OutputBus,
                             HatchElement.InputHatch,
                             HatchElement.InputBus,
-                            HatchElement.Maintenance,
                             ParallelCon)
                         .casingIndex(getCasingTextureID())
                         .hint(1)

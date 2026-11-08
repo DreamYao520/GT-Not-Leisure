@@ -164,7 +164,6 @@ public class EdenGarden extends MultiMachineBase<EdenGarden> implements IGreenHo
                             HatchElement.InputBus,
                             HatchElement.OutputBus,
                             HatchElement.InputHatch,
-                            HatchElement.Maintenance,
                             HatchElement.Energy.or(HatchElement.ExoticEnergy))
                         .casingIndex(Casings.ElectricCompressorCasing.getTextureId())
                         .hint(1)

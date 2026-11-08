@@ -106,11 +106,7 @@ public abstract class PhotovoltaicPowerStation extends MultiMachineBase<Photovol
                 GTStructureUtility.buildHatchAdder(PhotovoltaicPowerStation.class)
                     .casingIndex(getCasingTextureIndex())
                     .hint(1)
-                    .atLeast(
-                        HatchElement.Maintenance,
-                        HatchElement.InputHatch,
-                        HatchElement.Dynamo,
-                        HatchElement.Maintenance)
+                    .atLeast(HatchElement.Maintenance, HatchElement.InputHatch, HatchElement.Dynamo)
                     .buildAndChain(
                         StructureUtility.onElementPass(
                             x -> ++x.mCountCasing,

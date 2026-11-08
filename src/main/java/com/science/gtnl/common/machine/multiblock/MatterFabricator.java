@@ -90,7 +90,6 @@ public class MatterFabricator extends GTMMultiMachineBase<MatterFabricator> impl
                         HatchElement.OutputHatch,
                         HatchElement.InputBus,
                         HatchElement.OutputBus,
-                        HatchElement.Maintenance,
                         HatchElement.Energy.or(HatchElement.ExoticEnergy),
                         ParallelCon)
                     .buildAndChain(
