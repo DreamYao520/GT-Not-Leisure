@@ -76,6 +76,42 @@ public class MachineConfig {
 
     }
 
+    @Name("crop_breeder")
+    @LangKey("gtnl.gui.config.machine.crop_breeder")
+    public static final CropBreeder crop_breeder = new CropBreeder();
+
+    @Sync
+    @RequiresMcRestart
+    @Comment("Large Crop Breeder")
+    public static class CropBreeder {
+
+        @Comment("Success percentages for breeding grades 1 to 5, independent of machine voltage.")
+        @Config.DefaultIntList({ 100, 80, 60, 40, 20 })
+        @Config.RangeInt(min = 0, max = 100)
+        @Config.LangKey("gtnl.gui.config.machine.crop_breeder.tier_chances")
+        public int[] tierChances = { 100, 80, 60, 40, 20 };
+
+        @Comment({ "Per-crop overrides: CropsNH registry ID=percent (0-100).",
+            "Invalid entries are ignored. The last valid entry wins." })
+        @Config.DefaultStringList({})
+        @Config.LangKey("gtnl.gui.config.machine.crop_breeder.crop_overrides")
+        public String[] cropOverrides = {};
+
+        @Comment({ "Seed improvement: chance (%) that the selected stat rises by 1 each run.",
+            "Should exceed washDecreaseChance so stats trend upward." })
+        @Config.DefaultInt(55)
+        @Config.RangeInt(min = 0, max = 100)
+        @Config.LangKey("gtnl.gui.config.machine.crop_breeder.wash_increase_chance")
+        public int washIncreaseChance = 55;
+
+        @Comment({ "Seed improvement: chance (%) that the selected stat drops by 1 each run.",
+            "The remaining chance leaves it unchanged. Maxed stats never drop." })
+        @Config.DefaultInt(15)
+        @Config.RangeInt(min = 0, max = 100)
+        @Config.LangKey("gtnl.gui.config.machine.crop_breeder.wash_decrease_chance")
+        public int washDecreaseChance = 15;
+    }
+
     public static final QuantumComputer quantum_computer = new QuantumComputer();
 
     @Comment("Quantum Computer")
