@@ -25,6 +25,9 @@ public class GrandAssemblyLineSpecialRecipes implements IRecipePool {
         registerSpecialCircuit(LanthItemList.LUV_BEAMLINE_INPUT_HATCH, 1);
         registerSpecialCircuit(LanthItemList.LUV_BEAMLINE_OUTPUT_HATCH, 2);
 
+        registerSpecialCircuit(new ItemStack(LanthItemList.FOCUS_MANIPULATION_CASING), 1);
+        registerSpecialCircuit(new ItemStack(LanthItemList.TARGET_RECEPTACLE_CASING), 2);
+
         registerSpecialCircuit(CustomItemList.SpacetimeCompressionFieldGeneratorTier0.get(1), 1);
         registerSpecialCircuit(CustomItemList.SpacetimeCompressionFieldGeneratorTier1.get(1), 2);
         registerSpecialCircuit(CustomItemList.SpacetimeCompressionFieldGeneratorTier2.get(1), 3);
