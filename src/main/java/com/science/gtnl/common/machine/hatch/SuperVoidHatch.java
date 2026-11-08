@@ -9,6 +9,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -29,6 +30,7 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEHatchVoid;
 import gregtech.api.util.GTUtility;
+import gregtech.api.util.GTUtility.FluidId;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 @IMetaTileEntity.SkipGenerateName
@@ -107,6 +109,18 @@ public class SuperVoidHatch extends MTEHatchVoid implements IFluidsLockable {
                 }
             }
             return false;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isFilteredToFluid(FluidId id) {
+        if (!isFluidsLocked() || lockedFluidNames == null) return false;
+
+        for (String name : lockedFluidNames) {
+            if (GTUtility.isStringInvalid(name)) continue;
+            Fluid fluid = FluidRegistry.getFluid(name);
+            if (fluid != null && id.matches(fluid)) return true;
         }
         return false;
     }

@@ -473,8 +473,18 @@ public class OredictInputBusME extends MTEHatchInputBusME
     }
 
     @Override
+    public int getManualSlot() {
+        return isSuper ? SIDE_SLOT_COUNT * 2 + 1 : super.getManualSlot();
+    }
+
+    @Override
     public int getCircuitSlotX() {
         return isSuper ? 188 : super.getCircuitSlotX();
+    }
+
+    @Override
+    public int getSizeInventory() {
+        return isSuper ? ALL_SLOT_COUNT : super.getSizeInventory();
     }
 
     @Override
@@ -487,14 +497,18 @@ public class OredictInputBusME extends MTEHatchInputBusME
 
     @Override
     public ItemStack getStackInSlot(int aIndex) {
-        if (!isSuper || !processingRecipe) return super.getStackInSlot(aIndex);
+        if (!isSuper) return super.getStackInSlot(aIndex);
 
-        if (aIndex < 0 || aIndex > mInventory.length) return null;
+        if (aIndex < 0 || aIndex >= mInventory.length) return null;
+
+        if (aIndex == getCircuitSlot() || aIndex >= getManualSlot()) {
+            return mInventory[aIndex];
+        }
+
+        if (!processingRecipe) return null;
 
         // Display slots
         if (aIndex >= SIDE_SLOT_COUNT && aIndex < SIDE_SLOT_COUNT * 2) return null;
-
-        if (aIndex == getCircuitSlot() || (aIndex >= 201 && aIndex < ALL_SLOT_COUNT)) return mInventory[aIndex];
 
         if (mInventory[aIndex] != null) {
 
@@ -574,7 +588,7 @@ public class OredictInputBusME extends MTEHatchInputBusME
     }
 
     public int getManualSlotStartForGui() {
-        return isSuper ? SIDE_SLOT_COUNT * 2 + 1 : getManualSlot();
+        return getManualSlot();
     }
 
     public ItemStack updateInformationSlotForGui(int index, ItemStack stack) {

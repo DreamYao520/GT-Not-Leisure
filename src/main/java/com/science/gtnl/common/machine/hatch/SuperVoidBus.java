@@ -14,6 +14,8 @@ import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.utils.item.ItemStackHandler;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
+import com.science.gtnl.api.mixinHelper.ICommonMetaTileEntityInventory;
+import com.science.gtnl.api.mixinHelper.IMetaTileEntityInventoryHandler;
 import com.science.gtnl.common.gui.modularui.hatch.SuperVoidBusGui;
 
 import gregtech.api.interfaces.ITexture;
@@ -32,14 +34,27 @@ public class SuperVoidBus extends MTEHatchVoidBus {
 
     @Getter
     public ItemStack[] lockedItems = new ItemStack[100];
-    public ItemStackHandler lockedInventoryHandler = new ItemStackHandler(lockedItems);
+    public ItemStackHandler lockedInventoryHandler = new ItemStackHandler(lockedItems) {
+
+        @Override
+        public void onContentsChanged(int slot) {
+            SuperVoidBus.this.onContentsChanged(slot);
+        }
+    };
 
     public SuperVoidBus(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional);
+        initializeInventory();
     }
 
     public SuperVoidBus(String aName, int aTier, String[] aDescription, ITexture[][][] aTextures) {
         super(aName, aTier, aDescription, aTextures);
+        initializeInventory();
+    }
+
+    private void initializeInventory() {
+        ((ICommonMetaTileEntityInventory) this).setMInventory(lockedItems);
+        ((IMetaTileEntityInventoryHandler) this).setInventoryHandler(lockedInventoryHandler);
     }
 
     @Override
