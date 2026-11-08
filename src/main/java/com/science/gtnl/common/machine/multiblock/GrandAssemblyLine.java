@@ -76,8 +76,7 @@ import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 import gregtech.common.misc.WirelessNetworkManager;
 import gregtech.common.tileentities.machines.IDualInputHatch;
 import gregtech.common.tileentities.machines.IDualInputInventory;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
@@ -89,7 +88,7 @@ import tectech.thing.casing.BlockGTCasingsTT;
 @IMetaTileEntity.SkipGenerateName
 public class GrandAssemblyLine extends GTMMultiMachineBase<GrandAssemblyLine> implements ISurvivalConstructable {
 
-    public static Object2IntMap<ItemId> specialRecipe = new Object2IntOpenHashMap<>();
+    public static final Int2IntOpenHashMap specialRecipe = new Int2IntOpenHashMap();
 
     private static final String STRUCTURE_PIECE_MAIN = "main";
     private static final String GAL_STRUCTURE_FILE_PATH = RESOURCE_ROOT_ID + ":" + "multiblock/grand_assembly_line";
@@ -367,8 +366,8 @@ public class GrandAssemblyLine extends GTMMultiMachineBase<GrandAssemblyLine> im
 
             for (GTRecipe.RecipeAssemblyLine oldRecipe : validRecipes) {
                 GTRecipe.RecipeAssemblyLine recipe = copyRecipe(oldRecipe);
-                int circuit = specialRecipe.getOrDefault(ItemId.create(recipe.mOutput), -1);
-                if (circuit != -1) {
+                int circuit = specialRecipe.get(oldRecipe.getPersistentHash());
+                if (circuit > 0) {
                     ItemStack[] inputsArray = recipe.mInputs;
                     ItemStack[] newInputsArray = new ItemStack[inputsArray.length + 1];
                     System.arraycopy(inputsArray, 0, newInputsArray, 0, inputsArray.length);

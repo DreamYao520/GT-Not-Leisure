@@ -10,6 +10,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import com.science.gtnl.api.IRecipePool;
 import com.science.gtnl.common.material.GTNLRecipeMaps;
 import com.science.gtnl.common.recipe.thaumcraft.TCRecipeTools;
+import com.science.gtnl.utils.recipes.RecipeInputConflictResolver;
 
 import gregtech.api.enums.TierEU;
 import gregtech.api.interfaces.IRecipeMap;
@@ -42,69 +43,78 @@ public class ShapedArcaneCraftingRecipes implements IRecipePool {
         TCRecipeTools.getShapedArcaneCraftingRecipe();
         TCRecipeTools.getShapelessArcaneCraftingRecipe();
 
-        IRecipeMap IAA = GTNLRecipeMaps.IndustrialShapedArcaneCraftingRecipes;
+        List<PendingRecipe> pending = new ObjectArrayList<>();
 
-        // Shaped
         for (TCRecipeTools.ShapedArcaneCraftingRecipe recipe : TCRecipeTools.ShapedAR) {
-            if (TCRecipeTools.shouldSkipThaumcraftItem(
-                recipe.getOutput()
-                    .getItem())) {
-                continue;
-            }
-
-            ItemStack output = recipe.getOutput()
-                .copy();
-            output.stackSize = 1;
-
-            for (Object[] inputs : createInputVariants(Arrays.asList(recipe.getInputItems()))) {
-                registerRecipe(IAA, inputs, output, recipe.getInputAspects(), recipe.getResearch(), inputs.length == 1);
-            }
+            collectRecipe(
+                pending,
+                Arrays.asList(recipe.getInputItems()),
+                recipe.getOutput(),
+                recipe.getInputAspects(),
+                recipe.getResearch());
         }
 
-        // Shapeless
         for (TCRecipeTools.ShapelessArcaneCraftingRecipe recipe : TCRecipeTools.ShaplessAR) {
-            if (TCRecipeTools.shouldSkipThaumcraftItem(
-                recipe.getOutput()
-                    .getItem())) {
-                continue;
-            }
+            collectRecipe(
+                pending,
+                recipe.getInputItems(),
+                recipe.getOutput(),
+                recipe.getInputAspects(),
+                recipe.getResearch());
+        }
 
-            ItemStack output = recipe.getOutput()
-                .copy();
-            output.stackSize = 1;
+        RecipeInputConflictResolver resolver = new RecipeInputConflictResolver("ShapedArcaneCrafting", false);
+        for (PendingRecipe recipe : pending) {
+            resolver.add(recipe.inputs(), recipe.output());
+        }
+        RecipeInputConflictResolver.Result result = resolver.resolve();
 
-            for (Object[] inputs : createInputVariants(recipe.getInputItems())) {
-                registerRecipe(IAA, inputs, output, recipe.getInputAspects(), recipe.getResearch(), false);
-            }
+        IRecipeMap IAA = GTNLRecipeMaps.IndustrialShapedArcaneCraftingRecipes;
+        for (int i = 0; i < pending.size(); i++) {
+            if (result.isDuplicate(i)) continue;
+            registerRecipe(IAA, pending.get(i), result.circuit(i));
         }
     }
 
-    private void registerRecipe(IRecipeMap map, Object[] inputs, ItemStack output, AspectList aspects, String research,
-        boolean needsCircuit) {
-        Object[] recipeInputs = Arrays.stream(inputs)
-            .map(input -> input instanceof ItemStack stack ? stack.copy() : input)
-            .toArray();
+    private void collectRecipe(List<PendingRecipe> pending, Iterable<?> inputItems, ItemStack recipeOutput,
+        AspectList aspects, String research) {
+        if (TCRecipeTools.shouldSkipThaumcraftItem(recipeOutput.getItem())) return;
+
+        ItemStack output = recipeOutput.copy();
+        output.stackSize = 1;
+
+        for (Object[] inputs : createInputVariants(inputItems)) {
+            Object[] recipeInputs = Arrays.stream(inputs)
+                .map(input -> input instanceof ItemStack stack ? stack.copy() : input)
+                .toArray();
+            pending.add(new PendingRecipe(recipeInputs, output, aspects, research));
+        }
+    }
+
+    private void registerRecipe(IRecipeMap map, PendingRecipe recipe, int circuit) {
         int duration = TCRecipeTools
-            .computeAspectDurationFromCopy(aspects, TCRecipeTools.ARCANE_DURATION_TICKS_PER_ASPECT);
-        if (needsCircuit) {
+            .computeAspectDurationFromCopy(recipe.aspects(), TCRecipeTools.ARCANE_DURATION_TICKS_PER_ASPECT);
+        if (circuit > 0) {
             TCRecipeTools.addArcaneRecipeWithCircuit(
                 map,
-                recipeInputs,
-                new ItemStack[] { output.copy() },
-                aspects,
-                research,
+                recipe.inputs(),
+                new ItemStack[] { recipe.output()
+                    .copy() },
+                recipe.aspects(),
+                recipe.research(),
                 ARCANE_VIS,
                 ARCANE_RESEARCH,
                 duration,
                 TierEU.RECIPE_LV,
-                1);
+                circuit);
         } else {
             TCRecipeTools.addArcaneRecipe(
                 map,
-                recipeInputs,
-                new ItemStack[] { output.copy() },
-                aspects,
-                research,
+                recipe.inputs(),
+                new ItemStack[] { recipe.output()
+                    .copy() },
+                recipe.aspects(),
+                recipe.research(),
                 ARCANE_VIS,
                 ARCANE_RESEARCH,
                 duration,
@@ -192,4 +202,6 @@ public class ShapedArcaneCraftingRecipes implements IRecipePool {
         }
         return null;
     }
+
+    private record PendingRecipe(Object[] inputs, ItemStack output, AspectList aspects, String research) {}
 }

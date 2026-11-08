@@ -237,6 +237,8 @@ public class RecipeLoader implements IContentLoader {
         if (ModList.TwistSpaceTechnology.isModLoaded()) {
             loadTSTMegaAssemblyLineRecipes();
         }
+
+        GrandAssemblyLineSpecialRecipes.resolveConflicts();
     }
 
     public static void loadPlasmaCentrifugeRecipes() {
