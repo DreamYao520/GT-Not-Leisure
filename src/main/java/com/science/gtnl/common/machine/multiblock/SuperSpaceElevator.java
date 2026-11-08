@@ -1,6 +1,5 @@
 package com.science.gtnl.common.machine.multiblock;
 
-import static bartworks.common.loaders.ItemRegistry.bw_realglas;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
@@ -56,6 +55,7 @@ import com.science.gtnl.common.machine.multiMachineBase.TTMultiMachineBase;
 import com.science.gtnl.utils.StructureUtils;
 import com.science.gtnl.utils.world.teams.TeamNetworkManager;
 
+import bartworks.common.loaders.ItemRegistry;
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Materials;
@@ -290,7 +290,7 @@ public class SuperSpaceElevator extends TTMultiMachineBase
             .addElement('H', ofBlock(sBlockCasingsSE, 1))
             .addElement('I', Casings.DimensionallyTranscendentCasing.asElement())
             .addElement('J', ofBlock(BlockLoader.defcCasingBlock, 7))
-            .addElement('K', ofBlock(bw_realglas, 14))
+            .addElement('K', ofBlock(ItemRegistry.bw_realglas, 6))
             .addElement(
                 'L',
                 buildHatchAdder(SuperSpaceElevator.class)
