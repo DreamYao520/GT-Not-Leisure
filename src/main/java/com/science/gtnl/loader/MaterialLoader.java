@@ -47,6 +47,7 @@ public class MaterialLoader {
 
     public static void loadPreInit() {
         EffectLoader.registry();
+        EnchantmentLoader.registry();
         EntityLoader.registry();
         if (Mods.BetterQuesting.isModLoaded() && ModList.BetterQuestingAPI.isModLoaded()) {
             QuestLoader.registry();

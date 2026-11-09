@@ -45,6 +45,16 @@ public class ItemMajoBroom extends Item {
     }
 
     @Override
+    public boolean isItemTool(ItemStack stack) {
+        return true;
+    }
+
+    @Override
+    public int getItemEnchantability() {
+        return 15;
+    }
+
+    @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
         if (!"majo_broom".equals(broomName)) return;

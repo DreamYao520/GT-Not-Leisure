@@ -2,6 +2,10 @@ package com.science.gtnl.common.entity;
 
 import java.util.List;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.material.Material;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -9,8 +13,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.fluids.IFluidBlock;
 
 import com.science.gtnl.config.MainConfig;
+import com.science.gtnl.loader.EnchantmentLoader;
 import com.science.gtnl.loader.ItemLoader;
 
 public class EntityMajoBroom extends Entity {
@@ -46,6 +52,8 @@ public class EntityMajoBroom extends Entity {
     private static final double CLIENT_MAX_CATCHUP_MULTIPLIER = 1.5D;
     private static final float CLIENT_ROTATION_BLEND = 0.65F;
     private static final double CLIENT_SNAP_DISTANCE_SQUARED = 256.0D;
+    private static final int BROOM_STACK_WATCHER = 20;
+    private static final int GROUND_SKILLS_WATCHER = 21;
     public ItemStack broomStack;
     private int flightTicks;
     private byte keyVerticalInput;
@@ -74,11 +82,18 @@ public class EntityMajoBroom extends Entity {
     }
 
     public double getMaxHorizontalSpeed() {
-        return MainConfig.item.broom.maxSpeed / 20.0D;
+        return MainConfig.item.broom.maxSpeed / 20.0D * getSpeedMultiplier();
+    }
+
+    private double getSpeedMultiplier() {
+        Enchantment enchantment = dataWatcher.getWatchableObjectByte(GROUND_SKILLS_WATCHER) != 0
+            ? EnchantmentLoader.landSkills
+            : EnchantmentLoader.airSkills;
+        return 1.0D + 0.2D * EnchantmentLoader.getLevel(enchantment, getBroomStack());
     }
 
     public int getMaxFlightTicks() {
-        return MainConfig.item.broom.flightDurationSeconds * 20;
+        return EnchantmentLoader.getFlightDurationTicks(getBroomStack());
     }
 
     protected boolean hasUnlimitedFlight() {
@@ -92,6 +107,12 @@ public class EntityMajoBroom extends Entity {
     public void setBroomStack(ItemStack stack) {
         broomStack = stack.copy();
         broomStack.stackSize = 1;
+        dataWatcher.updateObject(BROOM_STACK_WATCHER, broomStack);
+    }
+
+    public ItemStack getBroomStack() {
+        ItemStack stack = worldObj.isRemote ? dataWatcher.getWatchableObjectItemStack(BROOM_STACK_WATCHER) : broomStack;
+        return stack == null ? getDefaultBroomStack() : stack;
     }
 
     public void setVerticalInput(byte input) {
@@ -106,7 +127,10 @@ public class EntityMajoBroom extends Entity {
     }
 
     @Override
-    public void entityInit() {}
+    public void entityInit() {
+        dataWatcher.addObjectByDataType(BROOM_STACK_WATCHER, 5);
+        dataWatcher.addObject(GROUND_SKILLS_WATCHER, (byte) 0);
+    }
 
     @Override
     public void onUpdate() {
@@ -214,8 +238,11 @@ public class EntityMajoBroom extends Entity {
         float forward = MathHelper.clamp_float(player.moveForward, -1.0F, 1.0F);
         float strafe = MathHelper.clamp_float(player.moveStrafing, -1.0F, 1.0F);
         verticalInput = keyVerticalInput != 0 ? keyVerticalInput : getViewVerticalInput(player, forward);
-        boolean canFly = hasUnlimitedFlight() || flightTicks < getMaxFlightTicks();
         boolean supported = isSupportedByGround();
+        dataWatcher.updateObject(GROUND_SKILLS_WATCHER, (byte) (supported ? 1 : 0));
+        boolean hasSeabreeze = EnchantmentLoader.getLevel(EnchantmentLoader.seabreeze, getBroomStack()) > 0;
+        if (hasSeabreeze && !Double.isNaN(getLiquidSurfaceY(0.0D, 0.0D))) flightTicks = 0;
+        boolean canFly = hasUnlimitedFlight() || flightTicks < getMaxFlightTicks();
         if (!canFly) {
             motionY = motionY * VERTICAL_DRAG - GRAVITY;
         } else if (verticalInput == 0) {
@@ -234,15 +261,58 @@ public class EntityMajoBroom extends Entity {
 
         updateHorizontalMotion(forward);
         limitHorizontalSpeed();
-        updateHoverBobbing(rider, supported);
+        double liquidSurface = hasSeabreeze ? getLiquidSurfaceY(motionX, motionZ) : Double.NaN;
+        boolean seaBreezing = !Double.isNaN(liquidSurface);
+        if (seaBreezing) {
+            flightTicks = 0;
+            if (motionY <= 0.0D) motionY = Math.max(motionY * 0.3D, liquidSurface - boundingBox.minY);
+        }
+        updateHoverBobbing(rider, supported || seaBreezing);
 
         if (supported && motionY <= 0.0D) motionY = Math.min(motionY, -0.001D);
         moveEntity(motionX, motionY, motionZ);
         if (onGround) {
             motionY = 0;
-        } else if (!hasUnlimitedFlight() && flightTicks < getMaxFlightTicks()) {
+        } else if (!seaBreezing && !hasUnlimitedFlight() && flightTicks < getMaxFlightTicks()) {
             flightTicks++;
         }
+    }
+
+    private double getLiquidSurfaceY(double offsetX, double offsetZ) {
+        double minSurface = boundingBox.minY + Math.min(0.0D, motionY) - 0.25D;
+        double maxSurface = boundingBox.minY + 0.15D;
+        int minX = MathHelper.floor_double(boundingBox.minX + offsetX);
+        int maxX = MathHelper.floor_double(boundingBox.maxX + offsetX - 0.0001D);
+        int minZ = MathHelper.floor_double(boundingBox.minZ + offsetZ);
+        int maxZ = MathHelper.floor_double(boundingBox.maxZ + offsetZ - 0.0001D);
+        int minY = Math.max(0, MathHelper.floor_double(minSurface) - 1);
+        int maxY = Math.min(worldObj.getHeight() - 1, MathHelper.floor_double(maxSurface));
+        double surface = Double.NaN;
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                for (int y = minY; y <= maxY; y++) {
+                    if (!worldObj.blockExists(x, y, z)) continue;
+                    Block block = worldObj.getBlock(x, y, z);
+                    Material material = block.getMaterial();
+                    if (material != Material.water && material != Material.lava) continue;
+                    if (worldObj.getBlock(x, y + 1, z)
+                        .getMaterial() == material) continue;
+                    double filled;
+                    if (block instanceof IFluidBlock fluid) {
+                        filled = fluid.getFilledPercentage(worldObj, x, y, z);
+                    } else if (block instanceof BlockLiquid) {
+                        filled = 1.0D - BlockLiquid.getLiquidHeightPercent(worldObj.getBlockMetadata(x, y, z));
+                    } else {
+                        continue;
+                    }
+                    if (filled <= 0.0D) continue;
+                    double candidate = y + Math.min(1.0D, filled);
+                    if (candidate >= minSurface && candidate <= maxSurface
+                        && (Double.isNaN(surface) || candidate > surface)) surface = candidate;
+                }
+            }
+        }
+        return surface;
     }
 
     public void simulateUnmountedMotion() {
@@ -255,6 +325,7 @@ public class EntityMajoBroom extends Entity {
         motionY = Math.max(motionY * UNMOUNTED_VERTICAL_DRAG - UNMOUNTED_GRAVITY, -UNMOUNTED_MAX_FALL_SPEED);
         moveEntity(motionX, motionY, motionZ);
         if (onGround) motionY = 0.0D;
+        dataWatcher.updateObject(GROUND_SKILLS_WATCHER, (byte) (onGround ? 1 : 0));
     }
 
     public byte getViewVerticalInput(EntityPlayer player, float forward) {
@@ -266,13 +337,15 @@ public class EntityMajoBroom extends Entity {
 
     public void updateHorizontalMotion(float forward) {
         forward = MathHelper.clamp_float(forward, -1.0F, 1.0F);
+        double reverseSpeed = MAX_REVERSE_SPEED * getSpeedMultiplier();
+        forwardSpeed = Math.max(-reverseSpeed, Math.min(getMaxHorizontalSpeed(), forwardSpeed));
         if (forward > 0.01F) {
             forwardSpeed = Math.min(getMaxHorizontalSpeed(), forwardSpeed + FORWARD_ACCELERATION * forward);
         } else if (forward < -0.01F) {
             if (forwardSpeed > 0.0D) {
                 forwardSpeed = Math.max(0.0D, forwardSpeed - BRAKE_ACCELERATION);
             } else {
-                forwardSpeed = Math.max(-MAX_REVERSE_SPEED, forwardSpeed - FORWARD_ACCELERATION * 0.5D);
+                forwardSpeed = Math.max(-reverseSpeed, forwardSpeed - FORWARD_ACCELERATION * 0.5D);
             }
         } else {
             if (forwardSpeed > 0.0D) forwardSpeed = Math.max(0.0D, forwardSpeed - COAST_DECELERATION);
@@ -393,7 +466,7 @@ public class EntityMajoBroom extends Entity {
     }
 
     public void recover(EntityPlayer player) {
-        ItemStack result = broomStack == null ? getDefaultBroomStack() : broomStack.copy();
+        ItemStack result = getBroomStack().copy();
         if (!player.inventory.addItemStackToInventory(result)) entityDropItem(result, 0.0F);
         setDead();
     }
@@ -423,13 +496,16 @@ public class EntityMajoBroom extends Entity {
 
     @Override
     public void readEntityFromNBT(NBTTagCompound tag) {
+        ItemStack stack = tag.hasKey("BroomStack", 10)
+            ? ItemStack.loadItemStackFromNBT(tag.getCompoundTag("BroomStack"))
+            : null;
+        setBroomStack(stack == null ? getDefaultBroomStack() : stack);
         flightTicks = Math.max(0, Math.min(getMaxFlightTicks(), tag.getInteger("FlightTicks")));
-        if (tag.hasKey("BroomStack", 10)) broomStack = ItemStack.loadItemStackFromNBT(tag.getCompoundTag("BroomStack"));
     }
 
     @Override
     public void writeEntityToNBT(NBTTagCompound tag) {
         tag.setInteger("FlightTicks", flightTicks);
-        if (broomStack != null) tag.setTag("BroomStack", broomStack.writeToNBT(new NBTTagCompound()));
+        tag.setTag("BroomStack", getBroomStack().writeToNBT(new NBTTagCompound()));
     }
 }

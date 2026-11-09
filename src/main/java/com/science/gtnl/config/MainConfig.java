@@ -123,6 +123,30 @@ public class MainConfig {
             @Comment("Give Elaina's Broom unlimited flight; otherwise use flightDurationSeconds")
             @DefaultBoolean(true)
             public boolean elainaUnlimitedFlight = true;
+
+            @Comment("Land Skills enchantment ID. Must match client/server; do not change after enchanting saved items")
+            @DefaultInt(200)
+            @RangeInt(min = 0, max = 32767)
+            @Sync(false)
+            public int landSkillsEnchantmentId = 200;
+
+            @Comment("Air Skills enchantment ID. Must match client/server; do not change after enchanting saved items")
+            @DefaultInt(201)
+            @RangeInt(min = 0, max = 32767)
+            @Sync(false)
+            public int airSkillsEnchantmentId = 201;
+
+            @Comment("Hovering enchantment ID. Must match client/server; do not change after enchanting saved items")
+            @DefaultInt(202)
+            @RangeInt(min = 0, max = 32767)
+            @Sync(false)
+            public int hoveringEnchantmentId = 202;
+
+            @Comment("Seabreeze enchantment ID. Must match client/server; do not change after enchanting saved items")
+            @DefaultInt(203)
+            @RangeInt(min = 0, max = 32767)
+            @Sync(false)
+            public int seabreezeEnchantmentId = 203;
         }
 
         @Name("elaina_brooch")
