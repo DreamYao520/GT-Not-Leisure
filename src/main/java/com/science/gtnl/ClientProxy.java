@@ -126,6 +126,7 @@ import gregtech.api.enums.Mods;
 import micdoodle8.mods.galacticraft.core.GalacticraftCore;
 import micdoodle8.mods.galacticraft.core.client.model.ModelRocketTier1;
 import micdoodle8.mods.galacticraft.core.proxy.ClientProxyCore;
+import thaumcraft.client.renderers.item.ItemWandRenderer;
 import thaumcraft.client.renderers.tile.TileTubeBufferRenderer;
 
 public class ClientProxy extends CommonProxy {
@@ -231,6 +232,7 @@ public class ClientProxy extends CommonProxy {
             new ItemBlockArtificialStarRender());
 
         MinecraftForgeClient.registerItemRenderer(ItemLoader.twilightSword, new ItemTwilightSwordRender());
+        MinecraftForgeClient.registerItemRenderer(ItemLoader.majoWand, new ItemWandRenderer());
 
         MinecraftForgeClient.registerItemRenderer(
             Item.getItemFromBlock(BlockLoader.nanoPhagocytosisPlantRender),

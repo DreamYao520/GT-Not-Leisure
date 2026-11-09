@@ -73,6 +73,8 @@ public class TCResearches {
             .setAutoUnlock()
             .registerResearchItem();
 
+        MajoWandRecipes.registerResearches();
+
         new ResearchItem(
             "gtnl.timeStopPocketWatch",
             "gtnl",

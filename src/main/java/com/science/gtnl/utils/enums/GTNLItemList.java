@@ -1317,7 +1317,9 @@ public enum GTNLItemList implements IItemContainer {
     MajoRobe,
     MajoBroom,
     ElainaBroom,
-    ElainaBrooch;
+    ElainaBrooch,
+    MajoWand,
+    MajoWandCore;
 
     public static final GTNLItemList[] ENERGY_HATCH_LV = { EnergyHatchLV, EnergyHatchLV4A, EnergyHatchLV16A,
         EnergyHatchLV64A };

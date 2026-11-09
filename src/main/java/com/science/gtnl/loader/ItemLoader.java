@@ -29,6 +29,8 @@ import com.science.gtnl.common.item.items.GTNLItemBucket;
 import com.science.gtnl.common.item.items.ItemElainaBrooch;
 import com.science.gtnl.common.item.items.ItemElainaBroom;
 import com.science.gtnl.common.item.items.ItemMajoBroom;
+import com.science.gtnl.common.item.items.ItemMajoWand;
+import com.science.gtnl.common.item.items.ItemMajoWandCore;
 import com.science.gtnl.common.item.items.ItemPartActiveFormationPlane;
 import com.science.gtnl.common.item.items.ItemPartBeamFormer;
 import com.science.gtnl.common.item.items.ItemPartDenseEnergyCell;
@@ -184,6 +186,8 @@ public class ItemLoader {
     public static ItemMajoBroom majoBroom = new ItemMajoBroom();
     public static ItemElainaBroom elainaBroom = new ItemElainaBroom();
     public static ItemElainaBrooch elainaBrooch = new ItemElainaBrooch();
+    public static ItemMajoWand majoWand = new ItemMajoWand();
+    public static ItemMajoWandCore majoWandCore = new ItemMajoWandCore();
 
     public static SuperReachRing superReachRing = new SuperReachRing();
     public static SatietyRing satietyRing = new SatietyRing();
