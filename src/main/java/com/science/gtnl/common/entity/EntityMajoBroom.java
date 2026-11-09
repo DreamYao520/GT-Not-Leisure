@@ -16,8 +16,6 @@ import com.science.gtnl.loader.ItemLoader;
 public class EntityMajoBroom extends Entity {
 
     public static final double MODEL_LIFT = 0.25D;
-    public static final int MAX_FLIGHT_TICKS = 20 * 30;
-    public static final double MAX_HORIZONTAL_SPEED = 15.0D / 20.0D;
     public static final double HORIZONTAL_RESPONSE = 0.42D;
     public static final double FORWARD_ACCELERATION = 0.035D;
     public static final double COAST_DECELERATION = 0.02D;
@@ -76,7 +74,11 @@ public class EntityMajoBroom extends Entity {
     }
 
     public double getMaxHorizontalSpeed() {
-        return MAX_HORIZONTAL_SPEED;
+        return MainConfig.item.broom.maxSpeed / 20.0D;
+    }
+
+    public int getMaxFlightTicks() {
+        return MainConfig.item.broom.flightDurationSeconds * 20;
     }
 
     protected boolean hasUnlimitedFlight() {
@@ -212,7 +214,7 @@ public class EntityMajoBroom extends Entity {
         float forward = MathHelper.clamp_float(player.moveForward, -1.0F, 1.0F);
         float strafe = MathHelper.clamp_float(player.moveStrafing, -1.0F, 1.0F);
         verticalInput = keyVerticalInput != 0 ? keyVerticalInput : getViewVerticalInput(player, forward);
-        boolean canFly = hasUnlimitedFlight() || flightTicks < MAX_FLIGHT_TICKS;
+        boolean canFly = hasUnlimitedFlight() || flightTicks < getMaxFlightTicks();
         boolean supported = isSupportedByGround();
         if (!canFly) {
             motionY = motionY * VERTICAL_DRAG - GRAVITY;
@@ -238,7 +240,7 @@ public class EntityMajoBroom extends Entity {
         moveEntity(motionX, motionY, motionZ);
         if (onGround) {
             motionY = 0;
-        } else if (!hasUnlimitedFlight() && flightTicks < MAX_FLIGHT_TICKS) {
+        } else if (!hasUnlimitedFlight() && flightTicks < getMaxFlightTicks()) {
             flightTicks++;
         }
     }
@@ -421,7 +423,7 @@ public class EntityMajoBroom extends Entity {
 
     @Override
     public void readEntityFromNBT(NBTTagCompound tag) {
-        flightTicks = Math.max(0, Math.min(MAX_FLIGHT_TICKS, tag.getInteger("FlightTicks")));
+        flightTicks = Math.max(0, Math.min(getMaxFlightTicks(), tag.getInteger("FlightTicks")));
         if (tag.hasKey("BroomStack", 10)) broomStack = ItemStack.loadItemStackFromNBT(tag.getCompoundTag("BroomStack"));
     }
 

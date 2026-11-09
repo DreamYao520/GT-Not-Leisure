@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Mixins implements IMixins {
 
-    FORGE_CORE(Side.COMMON, "forge.MixinFMLProxyPacket", "forge.MixinForgeHook"),
+    FORGE_CORE(Side.COMMON, "forge.MixinFMLProxyPacket", "forge.MixinForgeHook", "forge.MixinArmorProperties"),
 
     GREGTECH_EARLY(Side.COMMON, "gregtech.AccessorMTETieredMachineBlock", "gregtech.AccessorEyeOfHarmonyRecipe",
         "gregtech.AccessorGTRecipe", "gregtech.AccessorGTRecipeBuilder", "gregtech.AccessorGTRecipeWithAlt",

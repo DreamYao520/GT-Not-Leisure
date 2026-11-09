@@ -48,7 +48,7 @@ public abstract class MixinEntityPlayer extends EntityLivingBase implements ILea
 
     @Inject(method = "getTotalArmorValue", at = @At("HEAD"), cancellable = true)
     private void gtnl$elainaBroochArmorValue(CallbackInfoReturnable<Integer> cir) {
-        if (ItemElainaBrooch.isEquipped((EntityPlayer) (Object) this)) {
+        if (ItemElainaBrooch.overridesArmor((EntityPlayer) (Object) this)) {
             cir.setReturnValue(ItemElainaBrooch.getArmorValue());
         }
     }

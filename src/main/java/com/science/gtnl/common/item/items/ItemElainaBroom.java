@@ -13,6 +13,7 @@ import net.minecraft.world.World;
 
 import com.science.gtnl.common.entity.EntityElainaBroom;
 import com.science.gtnl.common.entity.EntityMajoBroom;
+import com.science.gtnl.config.MainConfig;
 import com.science.gtnl.loader.EffectLoader;
 import com.science.gtnl.utils.enums.GTNLItemList;
 import com.science.gtnl.utils.text.effect.TextEffects;
@@ -44,10 +45,12 @@ public class ItemElainaBroom extends ItemMajoBroom {
         }
         tooltip.add("");
         for (int line = 0; line < 4; line++) {
-            tooltip.add(
-                TextEffects.apply(
-                    StatCollector.translateToLocal("item.gtnl.elaina_broom.tooltip." + line),
-                    TextEffects.EVERCOLD_CYAN));
+            String text = line == 0 && !MainConfig.item.broom.elainaUnlimitedFlight
+                ? StatCollector.translateToLocalFormatted(
+                    "item.gtnl.elaina_broom.finite_flight",
+                    MainConfig.item.broom.flightDurationSeconds)
+                : StatCollector.translateToLocal("item.gtnl.elaina_broom.tooltip." + line);
+            tooltip.add(TextEffects.apply(text, TextEffects.EVERCOLD_CYAN));
         }
     }
 

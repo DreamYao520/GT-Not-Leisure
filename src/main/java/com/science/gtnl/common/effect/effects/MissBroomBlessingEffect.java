@@ -27,8 +27,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class MissBroomBlessingEffect extends EffectBase {
 
-    private static final int RADIUS = 5;
-    private static final int CLEANSE_INTERVAL_TICKS = 5 * 20;
     private static final long MAX_ACCELERATION_NANOS = 1_000_000L;
     private final Map<World, AccelerationFrame> accelerationFrames = new WeakHashMap<>();
 
@@ -47,8 +45,13 @@ public class MissBroomBlessingEffect extends EffectBase {
         if (!(entity instanceof EntityPlayer player) || entity.worldObj.isRemote) return;
         World world = entity.worldObj;
         long tick = world.getTotalWorldTime();
-        if (tick % CLEANSE_INTERVAL_TICKS == 0L) cleanse(player);
-        if ((tick & 1L) != 0L) return;
+        MainConfig.Effect.MissBroomBlessing config = MainConfig.effect.miss_broom_blessing;
+        if (config.enableCleanse && tick % (config.cleanseIntervalSeconds * 20L) == 0L) cleanse(player);
+        if (!config.enableAcceleration || config.accelerationPercent <= 0) return;
+        long phase = (tick + 1L) % 100L;
+        int extraTicks = (int) (((phase + 1L) * config.accelerationPercent / 100L)
+            - (phase * config.accelerationPercent / 100L));
+        if (extraTicks == 0) return;
 
         AccelerationFrame frame = accelerationFrames.computeIfAbsent(world, ignored -> new AccelerationFrame());
         if (frame.tick != tick) {
@@ -61,10 +64,11 @@ public class MissBroomBlessingEffect extends EffectBase {
         int cz = MathHelper.floor_double(player.posZ);
         long deadline = System.nanoTime() + MAX_ACCELERATION_NANOS;
         boolean nhUtilitiesLoaded = ModList.NHUtilities.isModLoaded();
+        int radius = config.accelerationRadius;
 
-        for (int dx = -RADIUS; dx <= RADIUS; dx++) {
-            for (int dy = -RADIUS; dy <= RADIUS; dy++) {
-                for (int dz = -RADIUS; dz <= RADIUS; dz++) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dy = -radius; dy <= radius; dy++) {
+                for (int dz = -radius; dz <= radius; dz++) {
                     if (System.nanoTime() > deadline) return;
                     int x = cx + dx;
                     int y = cy + dy;
@@ -77,10 +81,14 @@ public class MissBroomBlessingEffect extends EffectBase {
                     try {
                         if (nhUtilitiesLoaded) {
                             if (tile instanceof com.xir.NHUtilities.common.api.interfaces.ITileEntityTickAcceleration accelerated
-                                && accelerated.tickAcceleration(1)) continue;
+                                && accelerated.tickAcceleration(extraTicks)) continue;
                         } else if (tile instanceof ITileEntityTickAcceleration accelerated
-                            && accelerated.tickAcceleration(1)) continue;
-                        tile.updateEntity();
+                            && accelerated.tickAcceleration(extraTicks)) continue;
+                        for (int extra = 0; extra < extraTicks; extra++) {
+                            if (System.nanoTime() > deadline) return;
+                            if (tile.isInvalid()) break;
+                            tile.updateEntity();
+                        }
                     } catch (Throwable ignored) {}
                 }
             }
@@ -89,7 +97,8 @@ public class MissBroomBlessingEffect extends EffectBase {
 
     @SubscribeEvent
     public void onLivingFall(LivingFallEvent event) {
-        if (event.entity instanceof EntityPlayer player && !player.worldObj.isRemote
+        if (MainConfig.effect.miss_broom_blessing.preventFallDamage && event.entity instanceof EntityPlayer player
+            && !player.worldObj.isRemote
             && player.getActivePotionEffect(this) != null) event.setCanceled(true);
     }
 
@@ -103,10 +112,15 @@ public class MissBroomBlessingEffect extends EffectBase {
     }
 
     private static boolean isBlacklisted(TileEntity tile) {
-        String[] blacklist = MainConfig.re_avaritia.chronarch_clock.chronarchsClockTileEntityBlacklist;
-        if (blacklist.length == 0) return false;
+        String[] clockBlacklist = MainConfig.re_avaritia.chronarch_clock.chronarchsClockTileEntityBlacklist;
+        String[] blessingBlacklist = MainConfig.effect.miss_broom_blessing.tileEntityBlacklist;
+        if (clockBlacklist.length == 0 && blessingBlacklist.length == 0) return false;
         String registryName = EntityChronarchClock.getRegistryName(tile);
         if (registryName == null) return false;
+        return isListed(registryName, clockBlacklist) || isListed(registryName, blessingBlacklist);
+    }
+
+    private static boolean isListed(String registryName, String[] blacklist) {
         for (String entry : blacklist) {
             if (entry != null && registryName.equals(entry.trim())) return true;
         }

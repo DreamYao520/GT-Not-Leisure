@@ -27,6 +27,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 
 import com.science.gtnl.client.GTNLCreativeTabs;
 import com.science.gtnl.common.item.BaubleItem;
+import com.science.gtnl.config.MainConfig;
 import com.science.gtnl.mixins.early.minecraft.AccessorFoodStats;
 import com.science.gtnl.utils.enums.GTNLItemList;
 import com.science.gtnl.utils.text.effect.TextEffects;
@@ -51,11 +52,6 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
     private static final String TRAVELER_ACTIVE_TAG = "GTNLMajoTravelerActive";
     private static final String TRAVELER_FLIGHT_TAG = "GTNLMajoTravelerFlight";
     private static final UUID MAX_HEALTH_MODIFIER_ID = UUID.fromString("61f8a7e4-2c5d-4bb7-b1f4-2cfcdbef1eb6");
-    private static final int ARMOR_VALUE = 40;
-    private static final double MAX_HEALTH = 100.0D;
-    private static final int INVULNERABLE_TICKS = 50;
-    private static final int BUFF_DURATION_TICKS = 30 * 20;
-    private static final int BUFF_REFRESH_TICKS = 20 * 20;
 
     public ItemElainaBrooch() {
         BaubleExpandedSlots.tryRegisterType(TITLE_TYPE);
@@ -88,14 +84,61 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
                     TextEffects.GENESIS_COMPONENT_RARITY_SHADER));
         }
         tooltip.add("");
-        String worn = StatCollector.translateToLocal("item.gtnl.elaina_brooch.worn");
-        tooltip.add(TextEffects.apply(worn, TextEffects.EVERCOLD_CYAN));
-        for (int line = 0; line < 3; line++) {
+        MainConfig.Item.ElainaBrooch config = MainConfig.item.elaina_brooch;
+        if (!config.enabled) {
             tooltip.add(
                 TextEffects.apply(
-                    StatCollector.translateToLocal("item.gtnl.elaina_brooch.tooltip." + line),
+                    StatCollector.translateToLocal("item.gtnl.elaina_brooch.disabled"),
+                    TextEffects.EVERCOLD_CYAN));
+            return;
+        }
+        String worn = StatCollector.translateToLocal("item.gtnl.elaina_brooch.worn");
+        tooltip.add(TextEffects.apply(worn, TextEffects.EVERCOLD_CYAN));
+        if (config.enableCreativeFlight) {
+            tooltip.add(
+                TextEffects.apply(
+                    StatCollector.translateToLocal("item.gtnl.elaina_brooch.tooltip.0"),
                     TextEffects.EVERCOLD_CYAN));
         }
+        List<String> attributes = new ArrayList<>();
+        if (config.overrideArmor)
+            attributes.add(StatCollector.translateToLocalFormatted("item.gtnl.elaina_brooch.armor", config.armorValue));
+        if (config.overrideMaxHealth) attributes.add(
+            StatCollector
+                .translateToLocalFormatted("item.gtnl.elaina_brooch.max_health", formatValue(config.maxHealth)));
+        if (config.restoreHealth) attributes.add(
+            StatCollector
+                .translateToLocalFormatted("item.gtnl.elaina_brooch.restore_health", config.restoreIntervalSeconds));
+        if (config.restoreFood) attributes.add(
+            StatCollector.translateToLocalFormatted(
+                "item.gtnl.elaina_brooch.food",
+                config.foodLevel,
+                formatValue(Math.min(config.saturation, config.foodLevel))));
+        if (config.enableCleanse) attributes.add(StatCollector.translateToLocal("item.gtnl.elaina_brooch.cleanse"));
+        addEffectTooltip(tooltip, 1, attributes);
+        List<String> protection = new ArrayList<>();
+        if (config.preventDeath)
+            protection.add(StatCollector.translateToLocal("item.gtnl.elaina_brooch.prevent_death"));
+        if (config.invulnerabilitySeconds > 0.0D) protection.add(
+            StatCollector.translateToLocalFormatted(
+                "item.gtnl.elaina_brooch.invulnerability",
+                formatValue(config.invulnerabilitySeconds)));
+        addEffectTooltip(tooltip, 2, protection);
+    }
+
+    @SideOnly(Side.CLIENT)
+    private static void addEffectTooltip(List<String> tooltip, int line, List<String> effects) {
+        if (effects.isEmpty()) return;
+        tooltip.add(
+            TextEffects.apply(
+                StatCollector
+                    .translateToLocalFormatted("item.gtnl.elaina_brooch.tooltip." + line, String.join(", ", effects)),
+                TextEffects.EVERCOLD_CYAN));
+    }
+
+    @SideOnly(Side.CLIENT)
+    private static String formatValue(double value) {
+        return value == (long) value ? Long.toString((long) value) : Double.toString(value);
     }
 
     @Override
@@ -121,56 +164,61 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
     }
 
     public static int getArmorValue() {
-        return ARMOR_VALUE;
+        return MainConfig.item.elaina_brooch.armorValue;
+    }
+
+    public static boolean isActive(EntityPlayer player) {
+        return MainConfig.item.elaina_brooch.enabled && isEquipped(player);
+    }
+
+    public static boolean overridesArmor(EntityPlayer player) {
+        return MainConfig.item.elaina_brooch.overrideArmor && isActive(player);
+    }
+
+    public static boolean grantsCreativeFlight(EntityPlayer player) {
+        return MainConfig.item.elaina_brooch.enableCreativeFlight && isActive(player);
     }
 
     @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent event) {
         if (!(event.entityLiving instanceof EntityPlayer player) || player.worldObj.isRemote) return;
 
+        MainConfig.Item.ElainaBrooch config = MainConfig.item.elaina_brooch;
         NBTTagCompound data = player.getEntityData();
-        int invulnerableTicks = data.getInteger(INVULNERABLE_TICKS_TAG);
+        int invulnerableTicks = Math.min(data.getInteger(INVULNERABLE_TICKS_TAG), getInvulnerabilityTicks());
         if (invulnerableTicks > 0) data.setInteger(INVULNERABLE_TICKS_TAG, invulnerableTicks - 1);
+        else data.removeTag(INVULNERABLE_TICKS_TAG);
 
-        if (!isEquipped(player)) {
-            updateMaxHealth(player, false);
-            if (data.getBoolean(FLIGHT_TAG)) {
-                data.removeTag(FLIGHT_TAG);
-                if (!player.capabilities.isCreativeMode && !data.getBoolean(TRAVELER_ACTIVE_TAG)) {
-                    player.capabilities.allowFlying = false;
-                    player.capabilities.isFlying = false;
-                    player.sendPlayerAbilities();
-                }
-            }
+        boolean active = isActive(player);
+        updateMaxHealth(player, active && config.overrideMaxHealth);
+        updateFlight(player, data, active && config.enableCreativeFlight);
+        if (!active) {
             data.removeTag(INVULNERABLE_TICKS_TAG);
             data.removeTag(NEXT_BUFF_REFRESH_TAG);
             return;
         }
 
-        updateMaxHealth(player, true);
-        if (!player.capabilities.allowFlying) {
-            player.capabilities.allowFlying = true;
-            data.setBoolean(FLIGHT_TAG, true);
-            player.sendPlayerAbilities();
-        } else if (data.getBoolean(TRAVELER_FLIGHT_TAG)) {
-            data.setBoolean(FLIGHT_TAG, true);
-        }
-
         long worldTime = player.worldObj.getTotalWorldTime();
         long nextBuffRefresh = data.getLong(NEXT_BUFF_REFRESH_TAG);
-        if (!data.hasKey(NEXT_BUFF_REFRESH_TAG) || worldTime >= nextBuffRefresh
-            || nextBuffRefresh - worldTime > BUFF_REFRESH_TICKS) {
-            refreshBuffs(player);
-            data.setLong(NEXT_BUFF_REFRESH_TAG, worldTime + BUFF_REFRESH_TICKS);
-        }
+        int refreshTicks = config.potionRefreshSeconds * 20;
+        if (!config.enablePotionEffects) {
+            data.removeTag(NEXT_BUFF_REFRESH_TAG);
+        } else if (!data.hasKey(NEXT_BUFF_REFRESH_TAG) || worldTime >= nextBuffRefresh
+            || nextBuffRefresh - worldTime > refreshTicks) {
+                refreshBuffs(player);
+                data.setLong(NEXT_BUFF_REFRESH_TAG, worldTime + refreshTicks);
+            }
 
-        if (player.ticksExisted % 20 != 0) return;
-        player.setHealth(player.getMaxHealth());
-        FoodStats food = player.getFoodStats();
-        AccessorFoodStats foodAccessor = (AccessorFoodStats) food;
-        foodAccessor.setFoodlevel(20);
-        foodAccessor.setFoodSaturationLevel(20.0F);
-        foodAccessor.setFoodExhaustionLevel(0.0F);
+        if (player.ticksExisted % (config.restoreIntervalSeconds * 20) != 0) return;
+        if (config.restoreHealth) player.setHealth(player.getMaxHealth());
+        if (config.restoreFood) {
+            FoodStats food = player.getFoodStats();
+            AccessorFoodStats foodAccessor = (AccessorFoodStats) food;
+            foodAccessor.setFoodlevel(config.foodLevel);
+            foodAccessor.setFoodSaturationLevel((float) Math.min(config.saturation, config.foodLevel));
+            foodAccessor.setFoodExhaustionLevel(0.0F);
+        }
+        if (!config.enableCleanse) return;
         for (PotionEffect effect : new ArrayList<>(player.getActivePotionEffects())) {
             int potionId = effect.getPotionID();
             if (potionId < 0 || potionId >= Potion.potionTypes.length) continue;
@@ -180,20 +228,24 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
     }
 
     private static void refreshBuffs(EntityPlayer player) {
-        refreshBuff(player, Potion.nightVision, 0);
-        refreshBuff(player, Potion.fireResistance, 0);
-        refreshBuff(player, Potion.regeneration, 2);
-        refreshBuff(player, Potion.waterBreathing, 0);
-        refreshBuff(player, Potion.digSpeed, 0);
-        refreshBuff(player, Potion.resistance, 1);
-        refreshBuff(player, Potion.damageBoost, 4);
+        MainConfig.Item.ElainaBrooch config = MainConfig.item.elaina_brooch;
+        refreshBuff(player, Potion.nightVision, config.nightVisionLevel);
+        refreshBuff(player, Potion.fireResistance, config.fireResistanceLevel);
+        refreshBuff(player, Potion.regeneration, config.regenerationLevel);
+        refreshBuff(player, Potion.waterBreathing, config.waterBreathingLevel);
+        refreshBuff(player, Potion.digSpeed, config.hasteLevel);
+        refreshBuff(player, Potion.resistance, config.resistanceLevel);
+        refreshBuff(player, Potion.damageBoost, config.strengthLevel);
     }
 
-    private static void refreshBuff(EntityPlayer player, Potion potion, int amplifier) {
+    private static void refreshBuff(EntityPlayer player, Potion potion, int level) {
+        if (level == 0) return;
+        int amplifier = level - 1;
+        int duration = MainConfig.item.elaina_brooch.potionDurationSeconds * 20;
         PotionEffect current = player.getActivePotionEffect(potion);
         if (current != null && (current.getAmplifier() > amplifier
-            || current.getAmplifier() == amplifier && current.getDuration() >= BUFF_DURATION_TICKS)) return;
-        player.addPotionEffect(new PotionEffect(potion.id, BUFF_DURATION_TICKS, amplifier, true));
+            || current.getAmplifier() == amplifier && current.getDuration() >= duration)) return;
+        player.addPotionEffect(new PotionEffect(potion.id, duration, amplifier, true));
     }
 
     private static void updateMaxHealth(EntityPlayer player, boolean equipped) {
@@ -206,34 +258,61 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
             if (player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth());
             return;
         }
-        if (Math.abs(attribute.getAttributeValue() - MAX_HEALTH) < 0.001D) return;
+        double maxHealth = MainConfig.item.elaina_brooch.maxHealth;
+        if (Math.abs(attribute.getAttributeValue() - maxHealth) < 0.001D) return;
         if (current != null) attribute.removeModifier(current);
         double baseValue = attribute.getAttributeValue();
         int operation = baseValue > 0.0D ? 2 : 0;
-        double amount = operation == 2 ? MAX_HEALTH / baseValue - 1.0D : MAX_HEALTH;
+        double amount = operation == 2 ? maxHealth / baseValue - 1.0D : maxHealth;
         attribute.applyModifier(
             new AttributeModifier(MAX_HEALTH_MODIFIER_ID, "Elaina brooch maximum health", amount, operation)
                 .setSaved(false));
+        if (player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth());
+    }
+
+    private static void updateFlight(EntityPlayer player, NBTTagCompound data, boolean enabled) {
+        if (enabled) {
+            if (!player.capabilities.allowFlying) {
+                player.capabilities.allowFlying = true;
+                data.setBoolean(FLIGHT_TAG, true);
+                player.sendPlayerAbilities();
+            } else if (data.getBoolean(TRAVELER_FLIGHT_TAG)) {
+                data.setBoolean(FLIGHT_TAG, true);
+            }
+        } else if (data.getBoolean(FLIGHT_TAG)) {
+            data.removeTag(FLIGHT_TAG);
+            if (!player.capabilities.isCreativeMode && !data.getBoolean(TRAVELER_ACTIVE_TAG)) {
+                player.capabilities.allowFlying = false;
+                player.capabilities.isFlying = false;
+                player.sendPlayerAbilities();
+            }
+        }
+    }
+
+    private static int getInvulnerabilityTicks() {
+        return (int) Math.ceil(MainConfig.item.elaina_brooch.invulnerabilitySeconds * 20.0D);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onLivingAttack(LivingAttackEvent event) {
         if (!(event.entityLiving instanceof EntityPlayer player) || player.worldObj.isRemote) return;
-        if (isEquipped(player) && player.getEntityData()
-            .getInteger(INVULNERABLE_TICKS_TAG) > 0) event.setCanceled(true);
+        if (getInvulnerabilityTicks() > 0 && isActive(player)
+            && player.getEntityData()
+                .getInteger(INVULNERABLE_TICKS_TAG) > 0)
+            event.setCanceled(true);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onLivingHurt(LivingHurtEvent event) {
         if (!(event.entityLiving instanceof EntityPlayer player) || player.worldObj.isRemote) return;
-        if (!isEquipped(player) || event.ammount <= 0.0F) return;
+        if (!isActive(player) || event.ammount <= 0.0F) return;
         player.getEntityData()
-            .setInteger(INVULNERABLE_TICKS_TAG, INVULNERABLE_TICKS);
-        if (!event.source.isUnblockable()) {
+            .setInteger(INVULNERABLE_TICKS_TAG, getInvulnerabilityTicks());
+        if (MainConfig.item.elaina_brooch.overrideArmor && getArmorValue() >= 25 && !event.source.isUnblockable()) {
             event.setCanceled(true);
             return;
         }
-        if (event.ammount > player.getMaxHealth()) {
+        if (MainConfig.item.elaina_brooch.preventDeath && event.ammount > player.getMaxHealth()) {
             event.setCanceled(true);
             player.setHealth(1.0F);
         }
@@ -242,11 +321,11 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onLivingDeath(LivingDeathEvent event) {
         if (!(event.entityLiving instanceof EntityPlayer player) || player.worldObj.isRemote) return;
-        if (!isEquipped(player)) return;
+        if (!MainConfig.item.elaina_brooch.preventDeath || !isActive(player)) return;
         event.setCanceled(true);
         player.setHealth(1.0F);
         player.getEntityData()
-            .setInteger(INVULNERABLE_TICKS_TAG, INVULNERABLE_TICKS);
+            .setInteger(INVULNERABLE_TICKS_TAG, getInvulnerabilityTicks());
     }
 
     @SubscribeEvent

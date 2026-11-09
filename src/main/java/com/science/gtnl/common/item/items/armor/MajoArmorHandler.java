@@ -14,6 +14,7 @@ import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 
 import com.science.gtnl.common.item.items.ItemElainaBrooch;
+import com.science.gtnl.config.MainConfig;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import thaumcraft.common.lib.potions.PotionWarpWard;
@@ -59,8 +60,9 @@ public class MajoArmorHandler {
         boolean wearingRobe = robe != null && robe.getItem() instanceof MajoRobe;
         String playerName = player.getGameProfile()
             .getName();
-        boolean travelerSet = wearingHat && wearingRobe
-            && ("DreamYao520".equals(playerName) || "SereiaWe".equals(playerName));
+        boolean travelerSet = MainConfig.item.enableSpecialPlayerSetBonuses && wearingHat
+            && wearingRobe
+            && ("DreamYao520".equals(playerName) || "SereiaWei".equals(playerName));
 
         updateModifier(player.getEntityAttribute(SharedMonsterAttributes.maxHealth), HEALTH_BONUS, wearingRobe);
         updateModifier(
@@ -132,7 +134,7 @@ public class MajoArmorHandler {
         removeTravelerEffect(player, Potion.regeneration, 4);
         if (data.getBoolean(TRAVELER_FLIGHT_TAG)) {
             data.removeTag(TRAVELER_FLIGHT_TAG);
-            if (!player.capabilities.isCreativeMode && !ItemElainaBrooch.isEquipped(player)) {
+            if (!player.capabilities.isCreativeMode && !ItemElainaBrooch.grantsCreativeFlight(player)) {
                 player.capabilities.allowFlying = false;
                 player.capabilities.isFlying = false;
                 player.sendPlayerAbilities();

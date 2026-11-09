@@ -30,7 +30,7 @@ public class MixinForgeHook {
 
     @Inject(method = "getTotalArmorValue", at = @At("HEAD"), cancellable = true, remap = false)
     private static void gtnl$elainaBroochArmorValue(EntityPlayer player, CallbackInfoReturnable<Integer> cir) {
-        if (ItemElainaBrooch.isEquipped(player)) cir.setReturnValue(ItemElainaBrooch.getArmorValue());
+        if (ItemElainaBrooch.overridesArmor(player)) cir.setReturnValue(ItemElainaBrooch.getArmorValue());
     }
 
     @Inject(method = "onPlaceItemIntoWorld", at = @At("HEAD"), cancellable = true, remap = false)
