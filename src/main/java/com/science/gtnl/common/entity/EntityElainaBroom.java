@@ -6,7 +6,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
 
-import com.science.gtnl.config.MainConfig;
+import com.science.gtnl.config.ItemConfig;
 import com.science.gtnl.loader.EffectLoader;
 import com.science.gtnl.loader.ItemLoader;
 
@@ -21,12 +21,12 @@ public class EntityElainaBroom extends EntityMajoBroom {
 
     @Override
     protected boolean hasUnlimitedFlight() {
-        return MainConfig.item.broom.elainaUnlimitedFlight;
+        return ItemConfig.broom.elainaUnlimitedFlight;
     }
 
     @Override
     public double getMaxHorizontalSpeed() {
-        return super.getMaxHorizontalSpeed() * MainConfig.item.broom.elainaSpeedMultiplier;
+        return super.getMaxHorizontalSpeed() * ItemConfig.broom.elainaSpeedMultiplier;
     }
 
     @Override

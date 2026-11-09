@@ -8,14 +8,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.village.MerchantRecipe;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.Nxer.TwistSpaceTechnology.common.recipeMap.GTCMRecipe;
 import com.Nxer.TwistSpaceTechnology.recipe.machineRecipe.expanded.AssemblyLineWithoutResearchRecipePool;
-import com.Nxer.TwistSpaceTechnology.recipe.machineRecipe.expanded.CircuitAssemblyLineWithoutImprintRecipePool;
+import com.gtnllib.mod.ModList;
 import com.reavaritia.utils.enums.ReAvaItemList;
 import com.science.gtnl.api.IRecipePool;
 import com.science.gtnl.common.item.items.Stick;
 import com.science.gtnl.common.material.GTNLMaterials;
 import com.science.gtnl.common.material.GTNLRecipeMaps;
+import com.science.gtnl.common.recipe.RemoveRecipes;
 import com.science.gtnl.common.recipe.bloodMagic.MeteorsRecipes;
 import com.science.gtnl.common.recipe.botania.BotaniaManaInfusionRecipes;
 import com.science.gtnl.common.recipe.gregtech.AlloyBlastSmelterRecipes;
@@ -69,8 +69,8 @@ import com.science.gtnl.common.recipe.gtnl.AlchemicChemistrySetRecipes;
 import com.science.gtnl.common.recipe.gtnl.BloodDemonInjectionRecipes;
 import com.science.gtnl.common.recipe.gtnl.CactusWonderFakeRecipes;
 import com.science.gtnl.common.recipe.gtnl.CellRegulatorRecipes;
-import com.science.gtnl.common.recipe.gtnl.CircuitNanitesDataRecipes;
 import com.science.gtnl.common.recipe.gtnl.CraftingTableRecipes;
+import com.science.gtnl.common.recipe.gtnl.CrucibleCraftingRecipes;
 import com.science.gtnl.common.recipe.gtnl.DecayHastenerRecipes;
 import com.science.gtnl.common.recipe.gtnl.DesulfurizerRecipes;
 import com.science.gtnl.common.recipe.gtnl.ElectricNeutronActivatorRecipes;
@@ -99,6 +99,7 @@ import com.science.gtnl.common.recipe.gtnl.PlatinumBasedTreatmentRecipes;
 import com.science.gtnl.common.recipe.gtnl.PortalToAlfheimRecipes;
 import com.science.gtnl.common.recipe.gtnl.PrecisionLaserEngraver;
 import com.science.gtnl.common.recipe.gtnl.PrimitiveBrickKilnRecipes;
+import com.science.gtnl.common.recipe.gtnl.ProcessingArrayRecipeLoader;
 import com.science.gtnl.common.recipe.gtnl.RareEarthCentrifugalRecipes;
 import com.science.gtnl.common.recipe.gtnl.ReFusionReactorRecipes;
 import com.science.gtnl.common.recipe.gtnl.RealArtificialStarRecipes;
@@ -123,13 +124,12 @@ import com.science.gtnl.common.recipe.gtnl.SteamWoodcutterRecipes;
 import com.science.gtnl.common.recipe.gtnl.TheTwilightForestRecipes;
 import com.science.gtnl.common.recipe.gtnl.TreeDiagramRecipes;
 import com.science.gtnl.common.recipe.gtnl.WoodDistillationRecipes;
+import com.science.gtnl.common.recipe.gtnl.oreProcessing.CheatOreProcessingRecipes;
 import com.science.gtnl.common.recipe.thaumcraft.MajoWandRecipes;
-import com.science.gtnl.config.MainConfig;
-import com.science.gtnl.utils.enums.ModList;
-import com.science.gtnl.utils.machine.ProcessingArrayRecipeLoader;
-import com.science.gtnl.utils.machine.oreProcessing.CheatOreProcessingRecipes;
+import com.science.gtnl.config.ItemConfig;
+import com.science.gtnl.config.RecipeConfig;
+import com.science.gtnl.utils.enums.ModsItemlist;
 import com.science.gtnl.utils.recipes.RecipeUtil;
-import com.science.gtnl.utils.recipes.RemoveRecipes;
 
 import bartworks.API.recipe.BartWorksRecipeMaps;
 import cpw.mods.fml.common.Optional;
@@ -139,7 +139,6 @@ import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Mods;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMaps;
-import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTUtility;
@@ -148,10 +147,22 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import tectech.thing.CustomItemList;
 
-public class RecipeLoader {
+public class RecipeLoader implements IContentLoader {
+
+    @Override
+    public String name() {
+        return "recipes";
+    }
+
+    @Override
+    public void loadComplete() {
+        if (Mods.NewHorizonsCoreMod.isModLoaded()) ScriptLoader.registry();
+        if (ItemConfig.stick.enableStickItem) loadVillageTrade();
+        LoadCompleteRecipeScheduler.schedule();
+    }
 
     public static void loadCompleteInit() {
-        if (MainConfig.recipe.enableDeleteRecipe) {
+        if (RecipeConfig.enableDeleteRecipe) {
             RemoveRecipes.removeRecipes();
         }
 
@@ -161,7 +172,7 @@ public class RecipeLoader {
         CrackRecipeAdder.reAddBlastRecipe(GTNLMaterials.HSLASteel, 1000, 480, 1711, true);
         CrackRecipeAdder.reAddBlastRecipe(GTNLMaterials.Germaniumtungstennitride, 800, 30720, 8200, true);
 
-        if (MainConfig.recipe.enableChamberRecipesBuff) {
+        if (RecipeConfig.enableChamberRecipesBuff) {
             loadBuffTargetChamberRecipe();
         }
 
@@ -196,7 +207,8 @@ public class RecipeLoader {
             new ElectricNeutronActivatorRecipes(), new ReactorProcessingUnitRecipes(),
             new NuclearSaltProcessingPlantRecipes(), new MaceratorRecipes(), new QuantumForceTransformerRecipes(),
             new MicroorganismMasterRecipes(), new SolarMuonCatalystRecipes(), new CircuitAssemblerRecipes(),
-            new CircuitAssemblyLineRecipes(), new WoodDistillationRecipes(), new MajoWandRecipes() };
+            new CircuitAssemblyLineRecipes(), new WoodDistillationRecipes(), new CrucibleCraftingRecipes(),
+            new MajoWandRecipes() };
 
         for (IRecipePool recipePool : recipePools) {
             recipePool.loadRecipes();
@@ -226,16 +238,9 @@ public class RecipeLoader {
 
         if (ModList.TwistSpaceTechnology.isModLoaded()) {
             loadTSTMegaAssemblyLineRecipes();
-            loadTSTAdvCircuitAssemblyLineRecipes();
         }
-    }
 
-    @Optional.Method(modid = "TwistSpaceTechnology")
-    public static void loadTSTAdvCircuitAssemblyLineRecipes() {
-        GTCMRecipe.advCircuitAssemblyLineRecipes.getBackend()
-            .clearRecipes();
-        CircuitAssemblyLineWithoutImprintRecipePool.loadRecipes();
-        System.out.println("[GTNL] Register TwistSpaceTechnology AdvCircuitAssemblyLine recipes");
+        GrandAssemblyLineSpecialRecipes.resolveConflicts();
     }
 
     public static void loadPlasmaCentrifugeRecipes() {
@@ -266,10 +271,6 @@ public class RecipeLoader {
                 GTNLRecipeMaps.PlasmaCentrifugeRecipes.add(copiedRecipe);
             }
         }
-    }
-
-    public static void loadCircuitNanitesData(long worldSeed) {
-        new CircuitNanitesDataRecipes(worldSeed).loadRecipes();
     }
 
     public static void loadBuffTargetChamberRecipe() {
@@ -335,9 +336,8 @@ public class RecipeLoader {
                 recipeList.add(
                     new MerchantRecipe(
                         new ItemStack(Items.iron_ingot, 1),
-                        GTModHandler.getModItem(Mods.Botania.ID, "bifrostPermPane", 1),
-                        Stick.setDisguisedStack(
-                            GTOreDictUnificator.get(GTModHandler.getModItem(Mods.Avaritia.ID, "Resource", 1, 6)))));
+                        ModsItemlist.BotaniaBifrostPermPane.get(1),
+                        Stick.setDisguisedStack(GTOreDictUnificator.get(ModsItemlist.AvaritiaInfinityIngot.get(1)))));
                 recipeList.add(
                     new MerchantRecipe(
                         new ItemStack(Blocks.dispenser, 1),
@@ -349,19 +349,19 @@ public class RecipeLoader {
                 recipeList.add(
                     new MerchantRecipe(
                         new ItemStack(Items.leather_helmet, 1),
-                        Stick.setDisguisedStack(GTModHandler.getModItem(Mods.Avaritia.ID, "Infinity_Helm", 1))));
+                        Stick.setDisguisedStack(ModsItemlist.AvaritiaInfinityHelm.get(1))));
                 recipeList.add(
                     new MerchantRecipe(
                         new ItemStack(Items.leather_chestplate, 1),
-                        Stick.setDisguisedStack(GTModHandler.getModItem(Mods.Avaritia.ID, "Infinity_Chest", 1))));
+                        Stick.setDisguisedStack(ModsItemlist.AvaritiaInfinityChest.get(1))));
                 recipeList.add(
                     new MerchantRecipe(
                         new ItemStack(Items.leather_leggings, 1),
-                        Stick.setDisguisedStack(GTModHandler.getModItem(Mods.Avaritia.ID, "Infinity_Pants", 1))));
+                        Stick.setDisguisedStack(ModsItemlist.AvaritiaInfinityPants.get(1))));
                 recipeList.add(
                     new MerchantRecipe(
                         new ItemStack(Items.leather_boots, 1),
-                        Stick.setDisguisedStack(GTModHandler.getModItem(Mods.Avaritia.ID, "Infinity_Shoes", 1))));
+                        Stick.setDisguisedStack(ModsItemlist.AvaritiaInfinityShoes.get(1))));
             });
     }
 }

@@ -1,7 +1,5 @@
 package com.science.gtnl.common.item.items;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -16,6 +14,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
@@ -23,20 +22,18 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.google.common.collect.MapMaker;
+import com.gtnllib.utils.MetaTooltipUtils;
 import com.science.gtnl.ScienceNotLeisure;
-import com.science.gtnl.client.GTNLCreativeTabs;
 import com.science.gtnl.common.item.ItemStaticDataClientOnly;
 import com.science.gtnl.common.packet.ProspectingPacket;
+import com.science.gtnl.compat.visualprospecting.ProspectionResults;
 import com.science.gtnl.loader.ItemLoader;
+import com.science.gtnl.utils.ColorUtils;
 import com.science.gtnl.utils.item.ItemUtils;
 import com.science.gtnl.utils.item.MetaItemStackUtils;
-import com.science.gtnl.utils.item.MetaTooltipUtils;
-import com.sinthoras.visualprospecting.VisualProspecting_API;
 
-import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import gregtech.api.enums.Mods;
 import gregtech.api.items.MetaGeneratedTool;
 import gregtech.api.objects.ItemData;
 import gregtech.api.task.CooperativeScheduler;
@@ -53,10 +50,11 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class ElectricProspectorTool extends Item {
 
-    private static final int DEFAULT_SCAN_COLOR = 0xFF7D7D7D;
+    private static final int DEFAULT_SCAN_COLOR = ColorUtils.prospectorScanGray.getColor();
     private static final int MODE_FLUIDS = ProspectingPacket.MODE_FLUIDS;
     private static final int MODE_POLLUTION = ProspectingPacket.MODE_POLLUTION;
     private static final ScannerBlockResult UNSCANNABLE_BLOCK = new ScannerBlockResult(
@@ -74,12 +72,8 @@ public class ElectricProspectorTool extends Item {
 
     public ElectricProspectorTool() {
         super();
-        this.setUnlocalizedName("gtnl.electric_prospector_tool");
-        this.setCreativeTab(GTNLCreativeTabs.GTNotLeisureItem);
-        this.setTextureName(ScienceNotLeisure.RESOURCE_ROOT_ID + ":" + "electric_prospector_tool");
         this.setMaxStackSize(1);
         this.setMaxDamage(1);
-        GameRegistry.registerItem(this, "electric_prospector_tool");
     }
 
     public static ItemStack initItem(int aMeta, int aRange, long maxDamage) {
@@ -168,7 +162,7 @@ public class ElectricProspectorTool extends Item {
             Future<?> pendingScan = pendingScans.remove(aPlayer);
             if (pendingScan != null && !pendingScan.isDone()) {
                 pendingScan.cancel(true);
-                aPlayer.addChatMessage(new ChatComponentText("Cancelled pending scan"));
+                aPlayer.addChatMessage(new ChatComponentTranslation("gui.detrav.scanner.chat.cancel"));
             }
 
             int data = getDetravData(aStack);
@@ -177,8 +171,7 @@ public class ElectricProspectorTool extends Item {
                 if (data > 3) {
                     data = 0;
                 }
-                aPlayer.addChatMessage(
-                    new ChatComponentText(StatCollector.translateToLocal("detrav.scanner.mode." + data)));
+                aPlayer.addChatMessage(new ChatComponentTranslation("detrav.scanner.mode." + data));
                 setDetravData(aStack, data);
                 return aStack;
             }
@@ -188,7 +181,7 @@ public class ElectricProspectorTool extends Item {
             final int chunkZ = ((int) aPlayer.posZ) >> 4;
             final int radius = Math.max(0, rangeMap.leftInt() - 1);
             final List<Chunk> chunks = collectScannableChunks(aWorld, chunkX, chunkZ, radius);
-            aPlayer.addChatMessage(new ChatComponentText("Scanning..."));
+            aPlayer.addChatMessage(new ChatComponentTranslation("gui.detrav.scanner.chat.scanning"));
 
             ProspectingPacket packet = new ProspectingPacket(
                 chunkX,
@@ -222,9 +215,7 @@ public class ElectricProspectorTool extends Item {
                         return;
                     }
                     ScienceNotLeisure.network.sendTo(packet, (EntityPlayerMP) aPlayer);
-                    if (Mods.VisualProspecting.isModLoaded()) {
-                        sendVisualProspectingResults(aWorld, (EntityPlayerMP) aPlayer, scanMode, radius);
-                    }
+                    sendVisualProspectingResults(aWorld, (EntityPlayerMP) aPlayer, scanMode, radius);
                     if (MetaGeneratedTool.getToolDamage(aStack) >= MetaGeneratedTool.getToolMaxDamage(aStack)
                         && aStack.stackSize > 0) {
                         aStack.stackSize--;
@@ -238,7 +229,7 @@ public class ElectricProspectorTool extends Item {
 
     private static List<Chunk> collectScannableChunks(World world, int chunkX, int chunkZ, int radius) {
         int scanRadius = radius + 1;
-        List<Chunk> chunks = new ArrayList<>((2 * scanRadius + 1) * (2 * scanRadius + 1));
+        List<Chunk> chunks = new ObjectArrayList<>((2 * scanRadius + 1) * (2 * scanRadius + 1));
         for (int offsetX = -scanRadius; offsetX <= scanRadius; offsetX++) {
             for (int offsetZ = -scanRadius; offsetZ <= scanRadius; offsetZ++) {
                 if (offsetX != -scanRadius && offsetX != scanRadius
@@ -290,28 +281,10 @@ public class ElectricProspectorTool extends Item {
 
     private void sendVisualProspectingResults(World world, EntityPlayerMP player, int scanMode, int radius) {
         if (scanMode == ProspectingPacket.MODE_BIG_ORES || scanMode == ProspectingPacket.MODE_ALL_ORES) {
-            sendVisualProspectingOreResults(world, player, (int) player.posX, (int) player.posZ, radius * 16);
+            ProspectionResults.sendOres(world, player, (int) player.posX, (int) player.posZ, radius * 16);
         } else if (scanMode == MODE_FLUIDS) {
-            sendVisualProspectingFluidResults(world, player, (int) player.posX, (int) player.posZ, radius * 16);
+            ProspectionResults.sendFluids(world, player, (int) player.posX, (int) player.posZ, radius * 16);
         }
-    }
-
-    private void sendVisualProspectingOreResults(World world, EntityPlayerMP player, int blockX, int blockZ,
-        int blockRadius) {
-        VisualProspecting_API.LogicalServer.sendProspectionResultsToClient(
-            player,
-            VisualProspecting_API.LogicalServer
-                .prospectOreVeinsWithinRadius(world.provider.dimensionId, blockX, blockZ, blockRadius),
-            Collections.emptyList());
-    }
-
-    private void sendVisualProspectingFluidResults(World world, EntityPlayerMP player, int blockX, int blockZ,
-        int blockRadius) {
-        VisualProspecting_API.LogicalServer.sendProspectionResultsToClient(
-            player,
-            Collections.emptyList(),
-            VisualProspecting_API.LogicalServer
-                .prospectUndergroundFluidsWithingRadius(world, blockX, blockZ, blockRadius));
     }
 
     public void addChatMassageByValue(EntityPlayer aPlayer, int value, String name) {
@@ -382,9 +355,7 @@ public class ElectricProspectorTool extends Item {
             addChatMassageByValue(aPlayer, entry.getIntValue(), entry.getKey());
         }
 
-        if (Mods.VisualProspecting.isModLoaded()) {
-            sendVisualProspectingOreResults(aWorld, (EntityPlayerMP) aPlayer, aX, aZ, 0);
-        }
+        ProspectionResults.sendOres(aWorld, (EntityPlayerMP) aPlayer, aX, aZ, 0);
     }
 
     public void processOreProspecting(ItemStack aStack, EntityPlayer aPlayer, World world, int x, int y, int z,

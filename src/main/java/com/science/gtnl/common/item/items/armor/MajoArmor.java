@@ -13,11 +13,10 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.EnumHelper;
 
-import com.science.gtnl.client.GTNLCreativeTabs;
+import com.science.gtnl.common.item.GTNLCreativeTabs;
 import com.science.gtnl.common.render.model.MajoArmorModel;
 import com.science.gtnl.utils.enums.GTNLItemList;
 
-import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import thaumcraft.api.IVisDiscountGear;
@@ -40,7 +39,7 @@ public abstract class MajoArmor extends ItemArmor implements IVisDiscountGear {
         setUnlocalizedName("gtnl." + itemId);
         setCreativeTab(GTNLCreativeTabs.GTNotLeisureItem);
         setTextureName(RESOURCE_ROOT_ID + ":" + itemId);
-        GameRegistry.registerItem(this, itemId);
+
         itemEntry.set(new ItemStack(this));
     }
 

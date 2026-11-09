@@ -6,9 +6,9 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
 import com.gtnewhorizon.gtnhlib.util.ServerThreadUtil;
+import com.gtnllib.network.ServerboundPacket;
 import com.science.gtnl.common.entity.EntityMajoBroom;
 import com.science.gtnl.common.item.items.ItemMajoBroom;
-import com.science.gtnl.common.packet.base.ServerboundPacket;
 
 import io.netty.buffer.ByteBuf;
 

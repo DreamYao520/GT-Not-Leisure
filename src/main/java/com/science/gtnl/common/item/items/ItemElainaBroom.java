@@ -11,13 +11,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
+import com.gtnllib.text.TextEffects;
 import com.science.gtnl.common.entity.EntityElainaBroom;
 import com.science.gtnl.common.entity.EntityMajoBroom;
-import com.science.gtnl.config.MainConfig;
+import com.science.gtnl.config.ItemConfig;
 import com.science.gtnl.loader.EffectLoader;
 import com.science.gtnl.loader.EnchantmentLoader;
 import com.science.gtnl.utils.enums.GTNLItemList;
-import com.science.gtnl.utils.text.effect.TextEffects;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -49,7 +49,7 @@ public class ItemElainaBroom extends ItemMajoBroom {
         String flightSeconds = flightTicks % 20 == 0 ? Integer.toString(flightTicks / 20)
             : Double.toString(flightTicks / 20.0D);
         for (int line = 0; line < 4; line++) {
-            String text = line == 0 && !MainConfig.item.broom.elainaUnlimitedFlight
+            String text = line == 0 && !ItemConfig.broom.elainaUnlimitedFlight
                 ? StatCollector.translateToLocalFormatted("item.gtnl.elaina_broom.finite_flight", flightSeconds)
                 : StatCollector.translateToLocal("item.gtnl.elaina_broom.tooltip." + line);
             tooltip.add(TextEffects.apply(text, TextEffects.EVERCOLD_CYAN));

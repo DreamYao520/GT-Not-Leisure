@@ -6,8 +6,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 
+import com.gtnllib.text.TextEffects;
 import com.science.gtnl.utils.enums.GTNLItemList;
-import com.science.gtnl.utils.text.effect.TextEffects;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

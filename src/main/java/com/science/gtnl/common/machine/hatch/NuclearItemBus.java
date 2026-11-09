@@ -9,11 +9,12 @@ import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
-import com.science.gtnl.common.gui.modularui.NuclearItemBusGui;
+import com.science.gtnl.common.gui.modularui.hatch.NuclearItemBusGui;
 
 import gregtech.GTMod;
 import gregtech.api.enums.Textures;
 import gregtech.api.interfaces.ITexture;
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.items.ItemRadioactiveCellIC;
 import gregtech.api.metatileentity.MetaTileEntity;
@@ -23,6 +24,8 @@ import gregtech.api.util.GTOreDictUnificator;
 import gregtech.common.items.ItemNeutronReflector;
 import ic2.core.item.reactor.ItemReactorReflector;
 
+@IMetaTileEntity.SkipGenerateName
+@IMetaTileEntity.SkipGenerateDescription
 public class NuclearItemBus extends MTEHatch {
 
     public static final int SLOT_INPUT = 0;
@@ -43,6 +46,18 @@ public class NuclearItemBus extends MTEHatch {
 
     public NuclearItemBus(String aName, int aTier, String[] aDescription, ITexture[][][] aTextures) {
         super(aName, aTier, 3, aDescription, aTextures);
+    }
+
+    @Override
+    public String getLocalNameKey() {
+        if (!hasOwnLocalName()) return super.getLocalNameKey();
+        return "gtnl.hatch.nuclear_item_bus.name";
+    }
+
+    @Override
+    public String getLocalName() {
+        if (!hasOwnLocalName()) return super.getLocalName();
+        return StatCollector.translateToLocal(getLocalNameKey());
     }
 
     @Override

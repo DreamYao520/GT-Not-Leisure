@@ -15,7 +15,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.IFluidBlock;
 
-import com.science.gtnl.config.MainConfig;
+import com.science.gtnl.config.ItemConfig;
 import com.science.gtnl.loader.EnchantmentLoader;
 import com.science.gtnl.loader.ItemLoader;
 
@@ -82,7 +82,7 @@ public class EntityMajoBroom extends Entity {
     }
 
     public double getMaxHorizontalSpeed() {
-        return MainConfig.item.broom.maxSpeed / 20.0D * getSpeedMultiplier();
+        return ItemConfig.broom.maxSpeed / 20.0D * getSpeedMultiplier();
     }
 
     private double getSpeedMultiplier() {
@@ -329,7 +329,7 @@ public class EntityMajoBroom extends Entity {
     }
 
     public byte getViewVerticalInput(EntityPlayer player, float forward) {
-        if (!MainConfig.item.broom.enableViewControl || forward <= 0.01F) return 0;
+        if (!ItemConfig.broom.enableViewControl || forward <= 0.01F) return 0;
         if (player.rotationPitch <= -30.0F) return 1;
         if (player.rotationPitch >= 30.0F) return -1;
         return 0;

@@ -2,42 +2,35 @@ package com.science.gtnl.common.machine.hatch;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 
 import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
-import com.gtnewhorizons.modularui.api.math.Alignment;
-import com.gtnewhorizons.modularui.api.math.Color;
-import com.gtnewhorizons.modularui.api.screen.ModularWindow;
-import com.gtnewhorizons.modularui.api.screen.UIBuildContext;
-import com.gtnewhorizons.modularui.common.widget.DrawableWidget;
-import com.gtnewhorizons.modularui.common.widget.TextWidget;
-import com.gtnewhorizons.modularui.common.widget.textfield.TextFieldWidget;
 import com.science.gtnl.api.IConfigurationMaintenance;
-import com.science.gtnl.common.gui.modularui.GTNLCustomDroneDownLinkHatchGui;
-import com.science.gtnl.utils.item.ItemUtils;
+import com.science.gtnl.common.gui.modularui.hatch.GTNLCustomDroneDownLinkHatchGui;
 
-import gregtech.api.gui.modularui.GTUITextures;
 import gregtech.api.interfaces.IDataCopyable;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
-import gregtech.api.interfaces.modularui.IAddGregtechLogo;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.common.tileentities.machines.multi.drone.MTEHatchDroneDownLink;
 import lombok.Getter;
 import lombok.Setter;
 
+@IMetaTileEntity.SkipGenerateName
 @IMetaTileEntity.SkipGenerateDescription
 public class CustomDroneDownLinkHatch extends MTEHatchDroneDownLink
-    implements IConfigurationMaintenance, IAddGregtechLogo, IDataCopyable {
+    implements IConfigurationMaintenance, IDataCopyable {
 
     public static final String COPIED_DATA_IDENTIFIER = "customDroneDownLinkHatch";
+    private static final int DEFAULT_CONFIG_TIME = 100;
 
     public int mMinConfigTime;
     public int mMaxConfigTime;
-    public int mConfigTime = 100;
+    public int mConfigTime = DEFAULT_CONFIG_TIME;
     @Getter
     @Setter
     public int mCleanroomTier;
@@ -102,6 +95,18 @@ public class CustomDroneDownLinkHatch extends MTEHatchDroneDownLink
     }
 
     @Override
+    public String getLocalNameKey() {
+        if (!hasOwnLocalName()) return super.getLocalNameKey();
+        return "gtnl.hatch.configuration_drone_downlink.name";
+    }
+
+    @Override
+    public String getLocalName() {
+        if (!hasOwnLocalName()) return super.getLocalName();
+        return StatCollector.translateToLocal(getLocalNameKey());
+    }
+
+    @Override
     public MetaTileEntity newMetaEntity(IGregTechTileEntity aTileEntity) {
         return new CustomDroneDownLinkHatch(
             this.mName,
@@ -148,53 +153,16 @@ public class CustomDroneDownLinkHatch extends MTEHatchDroneDownLink
     }
 
     @Override
-    @Deprecated
-    public void addGregTechLogo(ModularWindow.Builder builder) {
-        // TODO: Remove this mui1 fallback after CustomDroneDownLinkHatch mui2 rollout is complete.
-        builder.widget(
-            new DrawableWidget().setDrawable(ItemUtils.PICTURE_GTNL_LOGO)
-                .setSize(18, 18)
-                .setPos(125, 62));
-    }
-
-    @Override
-    @Deprecated
-    public void addUIWidgets(ModularWindow.Builder builder, UIBuildContext buildContext) {
-        // TODO: Remove this mui1 fallback after CustomDroneDownLinkHatch mui2 rollout is complete.
-        super.addUIWidgets(builder, buildContext);
-        if (isConfiguration()) {
-            builder.widget(
-                TextWidget.localised("gtnl.hatch.configuration_maintenance.processing_time")
-                    .setTextAlignment(Alignment.Center)
-                    .setPos(0, 38)
-                    .setSize(150, 14))
-                .widget(
-                    new TextFieldWidget().setSetterInt(val -> mConfigTime = val)
-                        .setGetterInt(() -> mConfigTime)
-                        .setNumbers(mMinConfigTime, mMaxConfigTime)
-                        .setOnScrollNumbers(1, 2, 5)
-                        .setTextAlignment(Alignment.Center)
-                        .setTextColor(Color.WHITE.normal)
-                        .setSize(70, 18)
-                        .setPos(40, 56)
-                        .setBackground(GTUITextures.BACKGROUND_TEXT_FIELD));
-        }
-    }
-
-    @Override
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
         aNBT.setInteger("mConfigTime", mConfigTime);
-        aNBT.setInteger("mMinConfigTime", mMinConfigTime);
-        aNBT.setInteger("mMaxConfigTime", mMaxConfigTime);
     }
 
     @Override
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
-        mMinConfigTime = aNBT.getInteger("mMinConfigTime");
-        mMaxConfigTime = aNBT.getInteger("mMaxConfigTime");
-        setConfigTimeFromGui(aNBT.getInteger("mConfigTime"));
+        int configTime = aNBT.getInteger("mConfigTime");
+        setConfigTimeFromGui(configTime > 0 ? configTime : DEFAULT_CONFIG_TIME);
     }
 
     @Override

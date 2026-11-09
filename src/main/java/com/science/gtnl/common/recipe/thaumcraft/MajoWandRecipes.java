@@ -5,6 +5,7 @@ import net.minecraft.item.ItemStack;
 
 import com.science.gtnl.api.IRecipePool;
 import com.science.gtnl.common.item.wand.MajoWandStage;
+import com.science.gtnl.compat.thaumcraft.TCResearches;
 import com.science.gtnl.loader.ItemLoader;
 import com.science.gtnl.utils.recipes.RecipeBuilder;
 

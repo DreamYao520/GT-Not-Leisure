@@ -25,12 +25,12 @@ import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 
-import com.science.gtnl.client.GTNLCreativeTabs;
+import com.gtnllib.text.TextEffects;
 import com.science.gtnl.common.item.BaubleItem;
-import com.science.gtnl.config.MainConfig;
+import com.science.gtnl.common.item.GTNLCreativeTabs;
+import com.science.gtnl.config.ItemConfig;
 import com.science.gtnl.mixins.early.minecraft.AccessorFoodStats;
 import com.science.gtnl.utils.enums.GTNLItemList;
-import com.science.gtnl.utils.text.effect.TextEffects;
 
 import baubles.api.BaubleType;
 import baubles.api.BaublesApi;
@@ -38,7 +38,6 @@ import baubles.api.expanded.BaubleExpandedSlots;
 import baubles.api.expanded.IBaubleExpanded;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -59,7 +58,7 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
         setTextureName(RESOURCE_ROOT_ID + ":elaina_brooch");
         setMaxStackSize(1);
         setCreativeTab(GTNLCreativeTabs.GTNotLeisureItem);
-        GameRegistry.registerItem(this, "elaina_brooch");
+
         GTNLItemList.ElainaBrooch.set(new ItemStack(this));
         MinecraftForge.EVENT_BUS.register(this);
     }
@@ -84,7 +83,7 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
                     TextEffects.GENESIS_COMPONENT_RARITY_SHADER));
         }
         tooltip.add("");
-        MainConfig.Item.ElainaBrooch config = MainConfig.item.elaina_brooch;
+        ItemConfig.ElainaBrooch config = ItemConfig.elaina_brooch;
         if (!config.enabled) {
             tooltip.add(
                 TextEffects.apply(
@@ -164,26 +163,26 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
     }
 
     public static int getArmorValue() {
-        return MainConfig.item.elaina_brooch.armorValue;
+        return ItemConfig.elaina_brooch.armorValue;
     }
 
     public static boolean isActive(EntityPlayer player) {
-        return MainConfig.item.elaina_brooch.enabled && isEquipped(player);
+        return ItemConfig.elaina_brooch.enabled && isEquipped(player);
     }
 
     public static boolean overridesArmor(EntityPlayer player) {
-        return MainConfig.item.elaina_brooch.overrideArmor && isActive(player);
+        return ItemConfig.elaina_brooch.overrideArmor && isActive(player);
     }
 
     public static boolean grantsCreativeFlight(EntityPlayer player) {
-        return MainConfig.item.elaina_brooch.enableCreativeFlight && isActive(player);
+        return ItemConfig.elaina_brooch.enableCreativeFlight && isActive(player);
     }
 
     @SubscribeEvent
     public void onLivingUpdate(LivingUpdateEvent event) {
         if (!(event.entityLiving instanceof EntityPlayer player) || player.worldObj.isRemote) return;
 
-        MainConfig.Item.ElainaBrooch config = MainConfig.item.elaina_brooch;
+        ItemConfig.ElainaBrooch config = ItemConfig.elaina_brooch;
         NBTTagCompound data = player.getEntityData();
         int invulnerableTicks = Math.min(data.getInteger(INVULNERABLE_TICKS_TAG), getInvulnerabilityTicks());
         if (invulnerableTicks > 0) data.setInteger(INVULNERABLE_TICKS_TAG, invulnerableTicks - 1);
@@ -228,7 +227,7 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
     }
 
     private static void refreshBuffs(EntityPlayer player) {
-        MainConfig.Item.ElainaBrooch config = MainConfig.item.elaina_brooch;
+        ItemConfig.ElainaBrooch config = ItemConfig.elaina_brooch;
         refreshBuff(player, Potion.nightVision, config.nightVisionLevel);
         refreshBuff(player, Potion.fireResistance, config.fireResistanceLevel);
         refreshBuff(player, Potion.regeneration, config.regenerationLevel);
@@ -241,7 +240,7 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
     private static void refreshBuff(EntityPlayer player, Potion potion, int level) {
         if (level == 0) return;
         int amplifier = level - 1;
-        int duration = MainConfig.item.elaina_brooch.potionDurationSeconds * 20;
+        int duration = ItemConfig.elaina_brooch.potionDurationSeconds * 20;
         PotionEffect current = player.getActivePotionEffect(potion);
         if (current != null && (current.getAmplifier() > amplifier
             || current.getAmplifier() == amplifier && current.getDuration() >= duration)) return;
@@ -258,7 +257,7 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
             if (player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth());
             return;
         }
-        double maxHealth = MainConfig.item.elaina_brooch.maxHealth;
+        double maxHealth = ItemConfig.elaina_brooch.maxHealth;
         if (Math.abs(attribute.getAttributeValue() - maxHealth) < 0.001D) return;
         if (current != null) attribute.removeModifier(current);
         double baseValue = attribute.getAttributeValue();
@@ -290,7 +289,7 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
     }
 
     private static int getInvulnerabilityTicks() {
-        return (int) Math.ceil(MainConfig.item.elaina_brooch.invulnerabilitySeconds * 20.0D);
+        return (int) Math.ceil(ItemConfig.elaina_brooch.invulnerabilitySeconds * 20.0D);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -308,11 +307,11 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
         if (!isActive(player) || event.ammount <= 0.0F) return;
         player.getEntityData()
             .setInteger(INVULNERABLE_TICKS_TAG, getInvulnerabilityTicks());
-        if (MainConfig.item.elaina_brooch.overrideArmor && getArmorValue() >= 25 && !event.source.isUnblockable()) {
+        if (ItemConfig.elaina_brooch.overrideArmor && getArmorValue() >= 25 && !event.source.isUnblockable()) {
             event.setCanceled(true);
             return;
         }
-        if (MainConfig.item.elaina_brooch.preventDeath && event.ammount > player.getMaxHealth()) {
+        if (ItemConfig.elaina_brooch.preventDeath && event.ammount > player.getMaxHealth()) {
             event.setCanceled(true);
             player.setHealth(1.0F);
         }
@@ -321,7 +320,7 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onLivingDeath(LivingDeathEvent event) {
         if (!(event.entityLiving instanceof EntityPlayer player) || player.worldObj.isRemote) return;
-        if (!MainConfig.item.elaina_brooch.preventDeath || !isActive(player)) return;
+        if (!ItemConfig.elaina_brooch.preventDeath || !isActive(player)) return;
         event.setCanceled(true);
         player.setHealth(1.0F);
         player.getEntityData()

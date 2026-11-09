@@ -1,7 +1,7 @@
 package com.science.gtnl.common.recipe.gtnl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
@@ -10,11 +10,14 @@ import net.minecraftforge.oredict.OreDictionary;
 import com.science.gtnl.api.IRecipePool;
 import com.science.gtnl.common.material.GTNLRecipeMaps;
 import com.science.gtnl.common.recipe.thaumcraft.TCRecipeTools;
+import com.science.gtnl.utils.recipes.RecipeInputConflictResolver;
 
+import gregtech.api.enums.TierEU;
 import gregtech.api.interfaces.IRecipeMap;
+import gregtech.api.objects.OreDictItemStack;
 import gregtech.api.recipe.RecipeMetadataKey;
 import gregtech.api.recipe.metadata.SimpleRecipeMetadataKey;
-import gregtech.api.util.GTUtility;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import thaumcraft.api.aspects.AspectList;
 
 public class ShapedArcaneCraftingRecipes implements IRecipePool {
@@ -40,87 +43,134 @@ public class ShapedArcaneCraftingRecipes implements IRecipePool {
         TCRecipeTools.getShapedArcaneCraftingRecipe();
         TCRecipeTools.getShapelessArcaneCraftingRecipe();
 
-        IRecipeMap IAA = GTNLRecipeMaps.IndustrialShapedArcaneCraftingRecipes;
+        List<PendingRecipe> pending = new ObjectArrayList<>();
 
-        // Shaped
         for (TCRecipeTools.ShapedArcaneCraftingRecipe recipe : TCRecipeTools.ShapedAR) {
-            if (TCRecipeTools.shouldSkipThaumcraftItem(
-                recipe.getOutput()
-                    .getItem())) {
-                continue;
-            }
-
-            List<ItemStack> inputItems = new ArrayList<>();
-            for (Object input : recipe.getInputItems()) {
-                if (input instanceof ItemStack) {
-                    ItemStack copy = ((ItemStack) input).copy();
-                    copy.stackSize = 1;
-                    inputItems.add(copy);
-                } else if (input instanceof List) {
-                    List<ItemStack> oreDictItems = (List<ItemStack>) input;
-                    if (!oreDictItems.isEmpty() && !isOreDictBlacklisted(oreDictItems.get(0))) {
-                        ItemStack copy = oreDictItems.get(0)
-                            .copy();
-                        copy.stackSize = 1;
-                        inputItems.add(copy);
-                    }
-                }
-            }
-
-            if (inputItems.size() == 1) inputItems.add(GTUtility.getIntegratedCircuit(1));
-
-            ItemStack output = recipe.getOutput()
-                .copy();
-            output.stackSize = 1;
-
-            TCRecipeTools.addArcaneRecipe(
-                IAA,
-                TCRecipeTools.checkInputSpecial(inputItems.toArray(new ItemStack[0])),
-                new ItemStack[] { output },
+            collectRecipe(
+                pending,
+                Arrays.asList(recipe.getInputItems()),
+                recipe.getOutput(),
                 recipe.getInputAspects(),
-                recipe.getResearch(),
-                ARCANE_VIS,
-                ARCANE_RESEARCH);
+                recipe.getResearch());
         }
 
-        // Shapeless
         for (TCRecipeTools.ShapelessArcaneCraftingRecipe recipe : TCRecipeTools.ShaplessAR) {
-            if (TCRecipeTools.shouldSkipThaumcraftItem(
-                recipe.getOutput()
-                    .getItem())) {
-                continue;
-            }
+            collectRecipe(
+                pending,
+                recipe.getInputItems(),
+                recipe.getOutput(),
+                recipe.getInputAspects(),
+                recipe.getResearch());
+        }
 
-            List<ItemStack> inputItems = new ArrayList<>();
-            for (Object input : recipe.getInputItems()) {
-                if (input instanceof ItemStack) {
-                    ItemStack copy = ((ItemStack) input).copy();
-                    copy.stackSize = 1;
-                    inputItems.add(copy);
-                } else if (input instanceof List) {
-                    List<ItemStack> oreDictItems = (List<ItemStack>) input;
-                    if (!oreDictItems.isEmpty() && !isOreDictBlacklisted(oreDictItems.get(0))) {
-                        ItemStack copy = oreDictItems.get(0)
-                            .copy();
-                        copy.stackSize = 1;
-                        inputItems.add(copy);
-                    }
+        RecipeInputConflictResolver resolver = new RecipeInputConflictResolver("ShapedArcaneCrafting", false);
+        for (PendingRecipe recipe : pending) {
+            resolver.add(recipe.inputs(), recipe.output());
+        }
+        RecipeInputConflictResolver.Result result = resolver.resolve();
+
+        IRecipeMap IAA = GTNLRecipeMaps.IndustrialShapedArcaneCraftingRecipes;
+        for (int i = 0; i < pending.size(); i++) {
+            if (result.isDuplicate(i)) continue;
+            registerRecipe(IAA, pending.get(i), result.circuit(i));
+        }
+    }
+
+    private void collectRecipe(List<PendingRecipe> pending, Iterable<?> inputItems, ItemStack recipeOutput,
+        AspectList aspects, String research) {
+        if (TCRecipeTools.shouldSkipThaumcraftItem(recipeOutput.getItem())) return;
+
+        ItemStack output = recipeOutput.copy();
+        output.stackSize = 1;
+
+        for (Object[] inputs : createInputVariants(inputItems)) {
+            Object[] recipeInputs = Arrays.stream(inputs)
+                .map(input -> input instanceof ItemStack stack ? stack.copy() : input)
+                .toArray();
+            pending.add(new PendingRecipe(recipeInputs, output, aspects, research));
+        }
+    }
+
+    private void registerRecipe(IRecipeMap map, PendingRecipe recipe, int circuit) {
+        int duration = TCRecipeTools
+            .computeAspectDurationFromCopy(recipe.aspects(), TCRecipeTools.ARCANE_DURATION_TICKS_PER_ASPECT);
+        if (circuit > 0) {
+            TCRecipeTools.addArcaneRecipeWithCircuit(
+                map,
+                recipe.inputs(),
+                new ItemStack[] { recipe.output()
+                    .copy() },
+                recipe.aspects(),
+                recipe.research(),
+                ARCANE_VIS,
+                ARCANE_RESEARCH,
+                duration,
+                TierEU.RECIPE_LV,
+                circuit);
+        } else {
+            TCRecipeTools.addArcaneRecipe(
+                map,
+                recipe.inputs(),
+                new ItemStack[] { recipe.output()
+                    .copy() },
+                recipe.aspects(),
+                recipe.research(),
+                ARCANE_VIS,
+                ARCANE_RESEARCH,
+                duration,
+                TierEU.RECIPE_LV);
+        }
+    }
+
+    private List<Object[]> createInputVariants(Iterable<?> inputs) {
+        List<Object[]> variants = new ObjectArrayList<>();
+        variants.add(new Object[0]);
+
+        for (Object input : inputs) {
+            List<Object> alternatives = convertInput(input);
+            if (alternatives == null) return Collections.emptyList();
+            if (alternatives.isEmpty()) continue;
+
+            // Only explicit alternatives are expanded. Ore dictionary slots keep their original ID.
+            List<Object[]> expanded = new ObjectArrayList<>();
+            for (Object[] variant : variants) {
+                for (Object alternative : alternatives) {
+                    Object[] next = Arrays.copyOf(variant, variant.length + 1);
+                    next[variant.length] = alternative;
+                    expanded.add(next);
                 }
             }
-
-            ItemStack output = recipe.getOutput()
-                .copy();
-            output.stackSize = 1;
-
-            TCRecipeTools.addArcaneRecipe(
-                IAA,
-                TCRecipeTools.checkInputSpecial(inputItems.toArray(new ItemStack[0])),
-                new ItemStack[] { output },
-                recipe.getInputAspects(),
-                recipe.getResearch(),
-                ARCANE_VIS,
-                ARCANE_RESEARCH);
+            variants = expanded;
         }
+        return variants;
+    }
+
+    private List<Object> convertInput(Object input) {
+        if (input == null) return Collections.emptyList();
+        if (input instanceof ItemStack stack) {
+            return stack.getItem() == null ? null : Collections.singletonList(normalizeInput(stack));
+        }
+        if (!(input instanceof List<?>candidates) || candidates.isEmpty()) return null;
+
+        String oreName = findOreDictionaryName(input);
+        if (oreName != null) {
+            if (BLACKLISTED_OREDICT_NAMES.contains(oreName)) return Collections.emptyList();
+            return Collections.singletonList(new OreDictItemStack(oreName, 1));
+        }
+
+        List<Object> alternatives = new ObjectArrayList<>();
+        for (Object candidate : candidates) {
+            if (!(candidate instanceof ItemStack stack) || stack.getItem() == null) continue;
+            if (alternatives.isEmpty() && isOreDictBlacklisted(stack)) return Collections.emptyList();
+            alternatives.add(normalizeInput(stack));
+        }
+        return alternatives.isEmpty() ? null : alternatives;
+    }
+
+    private ItemStack normalizeInput(ItemStack stack) {
+        ItemStack copy = stack.copy();
+        copy.stackSize = 1;
+        return TCRecipeTools.checkInputSpecial(copy)[0];
     }
 
     private boolean isOreDictBlacklisted(ItemStack itemStack) {
@@ -133,4 +183,25 @@ public class ShapedArcaneCraftingRecipes implements IRecipePool {
         }
         return false;
     }
+
+    public static String findOreDictionaryName(Object input) {
+        if (!(input instanceof Iterable<?>candidates)) return null;
+
+        // Thaumcraft stores Forge's live list in place of the original ore name. Match that
+        // exact list, not a shared ore tag that could broaden an explicit set of alternatives.
+        for (Object candidate : candidates) {
+            if (!(candidate instanceof ItemStack stack) || stack.getItem() == null) continue;
+
+            for (int oreId : OreDictionary.getOreIDs(stack)) {
+                String oreName = OreDictionary.getOreName(oreId);
+                if (OreDictionary.getOres(oreName, false) == input) {
+                    return oreName;
+                }
+            }
+            return null;
+        }
+        return null;
+    }
+
+    private record PendingRecipe(Object[] inputs, ItemStack output, AspectList aspects, String research) {}
 }

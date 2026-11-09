@@ -1,6 +1,5 @@
 package com.science.gtnl.common.machine.hatch;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -14,10 +13,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import com.science.gtnl.common.me.InterfaceNameLocalization;
 
 import appeng.api.util.IInterfaceViewable;
 import gregtech.api.enums.ItemList;
@@ -36,9 +36,11 @@ import gregtech.common.tileentities.machines.IHatchWatcher;
 import gregtech.common.tileentities.machines.MTEHatchCraftingInputME;
 import gregtech.common.tileentities.machines.MTEHatchCraftingInputSlave;
 import gregtech.common.tileentities.machines.RecipeCheckReason;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import mcp.mobius.waila.api.IWailaConfigHandler;
 import mcp.mobius.waila.api.IWailaDataAccessor;
 
+@IMetaTileEntity.SkipGenerateName
 @IMetaTileEntity.SkipGenerateDescription
 public class SuperCraftingInputProxy extends MTEHatchInputBus implements IDualInputHatch, IDataCopyable, IHatchWatcher {
 
@@ -68,6 +70,18 @@ public class SuperCraftingInputProxy extends MTEHatchInputBus implements IDualIn
     public SuperCraftingInputProxy(String aName, int aTier, String[] aDescription, ITexture[][][] aTextures) {
         super(aName, aTier, 0, aDescription, aTextures);
         disableSort = true;
+    }
+
+    @Override
+    public String getLocalNameKey() {
+        if (!hasOwnLocalName()) return super.getLocalNameKey();
+        return "gtnl.hatch.super_crafting_input_proxy.name";
+    }
+
+    @Override
+    public String getLocalName() {
+        if (!hasOwnLocalName()) return super.getLocalName();
+        return StatCollector.translateToLocal(getLocalNameKey());
     }
 
     @Override
@@ -158,7 +172,7 @@ public class SuperCraftingInputProxy extends MTEHatchInputBus implements IDualIn
 
     @Override
     public String[] getInfoData() {
-        var ret = new ArrayList<String>();
+        var ret = new ObjectArrayList<String>();
         if (getMasterSuper() != null) {
             ret.add(
                 IGregTechDeviceInformation.encode(
@@ -455,39 +469,13 @@ public class SuperCraftingInputProxy extends MTEHatchInputBus implements IDualIn
     }
 
     private static void gtnl$writeMasterName(NBTTagCompound tag, String key, IInterfaceViewable master) {
-        tag.setString(key + "RawName", master.getRawName());
-        IChatComponent suffix = master.getNameSuffix();
-        if (suffix != null) tag.setString(key + "Suffix", IChatComponent.Serializer.func_150696_a(suffix));
-        ItemStack display = master.getDisplayRep();
-        if (display != null) tag.setTag(key + "Display", display.writeToNBT(new NBTTagCompound()));
+        InterfaceNameLocalization
+            .writeName(tag, key, master.getRawName(), master.getNameSuffix(), master.getDisplayRep());
     }
 
     private static void gtnl$addMasterName(List<String> currenttip, NBTTagCompound tag, String key) {
-        if (!tag.hasKey(key + "RawName")) return;
-
-        ItemStack display = tag.hasKey(key + "Display")
-            ? ItemStack.loadItemStackFromNBT(tag.getCompoundTag(key + "Display"))
-            : null;
-        String name = gtnl$localize(tag.getString(key + "RawName"), display);
-        String suffix = tag.getString(key + "Suffix");
-        if (!suffix.isEmpty()) name += gtnl$resolveSuffix(suffix);
-        currenttip.add(EnumChatFormatting.GOLD + name + EnumChatFormatting.RESET);
-    }
-
-    private static String gtnl$localize(String rawName, ItemStack display) {
-        if (StatCollector.canTranslate(rawName)) return StatCollector.translateToLocal(rawName);
-        String fallback = rawName + ".name";
-        if (StatCollector.canTranslate(fallback)) return StatCollector.translateToLocal(fallback);
-        return display == null ? rawName : display.getDisplayName();
-    }
-
-    private static String gtnl$resolveSuffix(String suffix) {
-        try {
-            IChatComponent component = IChatComponent.Serializer.func_150699_a(suffix);
-            return component == null ? suffix : component.getUnformattedText();
-        } catch (Exception ignored) {
-            return suffix;
-        }
+        String name = InterfaceNameLocalization.localizeName(tag, key);
+        if (!name.isEmpty()) currenttip.add(EnumChatFormatting.GOLD + name + EnumChatFormatting.RESET);
     }
 
     @Override

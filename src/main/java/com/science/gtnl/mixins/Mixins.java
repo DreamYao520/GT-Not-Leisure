@@ -2,9 +2,12 @@ package com.science.gtnl.mixins;
 
 import com.gtnewhorizon.gtnhmixins.builders.IMixins;
 import com.gtnewhorizon.gtnhmixins.builders.MixinBuilder;
+import com.gtnllib.mod.ModList;
 import com.science.gtnl.asm.GTNLEarlyCoreMod;
-import com.science.gtnl.config.MainConfig;
-import com.science.gtnl.utils.enums.ModList;
+import com.science.gtnl.config.ItemConfig;
+import com.science.gtnl.config.MachineConfig;
+import com.science.gtnl.config.MinecraftConfig;
+import com.science.gtnl.config.OtherConfig;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +20,9 @@ public enum Mixins implements IMixins {
 
     GREGTECH_EARLY(Side.COMMON, "gregtech.AccessorMTETieredMachineBlock", "gregtech.AccessorEyeOfHarmonyRecipe",
         "gregtech.AccessorGTRecipe", "gregtech.AccessorGTRecipeBuilder", "gregtech.AccessorGTRecipeWithAlt",
-        "gregtech.MixinGTRecipe", "gregtech.AccessorGTLanguageManager", "gregtech.AccessorCommonMetaTileEntity",
-        "gregtech.AccessorMetaTileEntity", "gregtech.AccessorMTEHatch", "gregtech.AccessorProcessingLogic",
-        "gregtech.AccessorRecipeDisplayInfo", "gregtech.MixinBaseMetaTileEntity", "gregtech.assLineRemover.MixinGTMod",
+        "gregtech.MixinGTRecipe", "gregtech.AccessorGTLanguageManager", "gregtech.AccessorMTEHatch",
+        "gregtech.AccessorProcessingLogic", "gregtech.AccessorRecipeDisplayInfo", "gregtech.MixinBaseMetaTileEntity",
+        "gregtech.MixinCommonMetaTileEntity", "gregtech.MixinMetaTileEntity", "gregtech.assLineRemover.MixinGTMod",
         "gregtech.assLineRemover.MixinGTRecipeBuilder", "gregtech.assLineRemover.MixinTTRecipeAdder",
         "energyMonitor.MixinBaseMetaTileEntityEnergyMonitor", "energyMonitor.MixinCommonMetaTileEntityEnergyMonitor"),
 
@@ -34,12 +37,13 @@ public enum Mixins implements IMixins {
 
     MINECRAFT_COMMON(Side.COMMON, "minecraft.AccessorStringTranslate", "minecraft.AccessorContainerRepair",
         "minecraft.AccessorEntityLivingBase", "minecraft.AccessorTessellator", "minecraft.AccessorFoodStats",
-        "minecraft.AccessorMinecraft", "minecraft.MixinCommandTeleport", "minecraft.MixinEntity",
-        "minecraft.MixinEntityItem", "minecraft.MixinEntityLivingBase", "minecraft.MixinEntityLiving",
-        "minecraft.MixinEntityPlayer", "minecraft.MixinExplosion", "minecraft.MixinInventoryCrafting",
-        "minecraft.MixinItemStack", "minecraft.MixinMinecraftServer", "minecraft.MixinNBTTagList",
-        "minecraft.MixinPotionEffect", "minecraft.MixinServerConfigurationManager", "minecraft.MixinWorld",
-        "minecraft.MixinWorldGhostlyShape", "minecraft.MixinWorldServer"),
+        "minecraft.AccessorMinecraft", "minecraft.AccessorTileEntity", "minecraft.MixinCommandTeleport",
+        "minecraft.MixinEntity", "minecraft.MixinEntityItem", "minecraft.MixinEntityLivingBase",
+        "minecraft.MixinEntityLiving", "minecraft.MixinEntityPlayer", "minecraft.MixinExplosion",
+        "minecraft.MixinInventoryCrafting", "minecraft.MixinItemStack", "minecraft.MixinMinecraftServer",
+        "minecraft.MixinNBTTagList", "minecraft.MixinPotionEffect", "minecraft.MixinServerConfigurationManager",
+        "minecraft.MixinWorld", "minecraft.MixinWorldGhostlyShape", "minecraft.MixinWorldServer",
+        "minecraft.MixinContainerYogTerminal", "minecraft.MixinItemStackYogTerminalName"),
 
     APRIL_FOOL(new MixinBuilder("April Fool Late Mixins")
         .addSidedMixins(Side.CLIENT, "aprilFool.MixinBaseMetaTileEntityRenderer", "aprilFool.MixinCommonMetaTileEntity")
@@ -49,36 +53,13 @@ public enum Mixins implements IMixins {
     MINECRAFT_KILL_ENHANCE(
         new MixinBuilder("Mixins for Kill Command Enhance").addCommonMixins("minecraft.MixinCommandKill")
             .setPhase(Phase.EARLY)
-            .setApplyIf(() -> MainConfig.minecraft.enableKillEnhance)),
+            .setApplyIf(() -> MinecraftConfig.enableKillEnhance)),
 
     MINECRAFT_CLIENT(Side.CLIENT, "minecraft.AccessorEntityRenderer", "minecraft.AccessorGuiChat",
-        "minecraft.MixinMinecraft", "minecraft.MixinWorldClient",
+        "minecraft.MixinMinecraft", "minecraft.MixinModelBiped", "minecraft.MixinMinecraftRailgunClick",
+        "minecraft.MixinRenderPlayerFirstPersonArm", "minecraft.MixinWorldClient", "minecraft.MixinItemRendererRailgun",
         // "minecraft.MixinSimpleReloadableResourceManager",
         "minecraft.MixinGuiContainer", "minecraft.MixinGuiFlatPresets"),
-
-    TEXT_EFFECTS_COMMON(Side.COMMON, "texteffect.MixinEnumChatFormattingTextEffects"),
-
-    TEXT_EFFECTS_CLIENT(Side.CLIENT, "texteffect.MixinFontRendererTextEffects", "texteffect.MixinGuiNewChatTextEffects",
-        "texteffect.MixinGuiTextFieldTextEffects"),
-
-    TEXT_EFFECTS_ANGELICA(new MixinBuilder("Optional Angelica text effect batching")
-        .addClientMixins("texteffect.angelica.MixinFontBatchTextEffects")
-        .setPhase(Phase.EARLY)
-        .addRequiredMod(ModList.Angelica)),
-
-    TEXT_EFFECTS_NEI(
-        new MixinBuilder("Optional NEI text effect input").addClientMixins("texteffect.MixinNEIFormattedTextField")
-            .setPhase(Phase.LATE)
-            .addRequiredMod(ModList.NotEnoughItems)),
-
-    SUPER_CREEPER(new MixinBuilder("Mixins for Super Creeper logic")
-        .addCommonMixins(
-            "superCreeper.AccessorEntityCreeper",
-            "superCreeper.MixinEntityAICreeperSwell",
-            "superCreeper.MixinEntityCreeper",
-            "superCreeper.MixinEntitySpider")
-        .setPhase(Phase.EARLY)
-        .setApplyIf(() -> MainConfig.super_creeper.enableSuperCreeper)),
 
     NEI_CHEAT_ICON(new MixinBuilder("Mixins for NEI Special Cheat Icon")
         .addCommonMixins(
@@ -88,7 +69,7 @@ public enum Mixins implements IMixins {
             "notEnoughItems.MixinLayoutManager",
             "notEnoughItems.MixinLayoutStyleMinecraft")
         .setPhase(Phase.EARLY)
-        .setApplyIf(() -> MainConfig.other.not_enough_items.enableSpecialCheatIcon)),
+        .setApplyIf(() -> OtherConfig.not_enough_items.enableSpecialCheatIcon)),
 
     STICK_RENDER(new MixinBuilder("Mixins for Stick item rendering")
         .addClientMixins(
@@ -97,32 +78,108 @@ public enum Mixins implements IMixins {
             "stick.MixinLayoutManager",
             "stick.MixinRenderItem")
         .setPhase(Phase.EARLY)
-        .setApplyIf(() -> MainConfig.item.stick.enableStickItem)),
+        .setApplyIf(() -> ItemConfig.stick.enableStickItem)),
+
+    WIRELESS_TILE_DATA(new MixinBuilder("ME wireless link persistence")
+        .addCommonMixins("appliedEnergistics.wireless.MixinWirelessTileData")
+        .setPhase(Phase.EARLY)),
+
+    WIRELESS_CHANNEL(new MixinBuilder("ME wireless channel allocation")
+        .addCommonMixins(
+            "appliedEnergistics.wireless.MixinWirelessPathingCalculation",
+            "appliedEnergistics.wireless.MixinWirelessPathGridCache",
+            "appliedEnergistics.wireless.MixinWirelessPartPlacement",
+            "appliedEnergistics.wireless.MixinWirelessGridNode",
+            "appliedEnergistics.wireless.MixinWirelessVisualiserTool",
+            "appliedEnergistics.wireless.AccessorTileController")
+        .addClientMixins("appliedEnergistics.wireless.MixinWirelessVisualiserRender")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.AppliedEnergistics)),
+
+    WIRELESS_MATTER_MANIPULATOR(new MixinBuilder("ME wireless links follow Matter Manipulator moves and copies")
+        .addCommonMixins(
+            "matterManipulator.MixinPendingBlockWireless",
+            "matterManipulator.MixinPendingBuildWireless",
+            "matterManipulator.MixinPendingMoveWireless")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.AppliedEnergistics)
+        .addRequiredMod(ModList.MatterManipulator)),
+
+    ME_MINI_TERMINAL(new MixinBuilder("ME mini portable terminal native terminal adapter")
+        .addCommonMixins("appliedEnergistics.meminiterminal.MixinMiniTerminalMonitorableDestination")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.AppliedEnergistics)),
+
+    FLOATING_WINDOW_HOST_TOOLTIP(new MixinBuilder("Floating window host tooltip layering")
+        .addClientMixins("minecraft.AccessorGuiScreen", "minecraft.MixinFloatingWindowHostTooltip")
+        .setPhase(Phase.EARLY)),
+
+    YOG_SOTHOTH_TERMINAL_BAUBLES(new MixinBuilder("Yog-Sothoth terminal virtual bauble slots")
+        .addCommonMixins("baubles.MixinBaublesApiYogTerminal")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.Baubles)),
+
+    YOG_SOTHOTH_TERMINAL_AE(new MixinBuilder("Yog-Sothoth terminal opens stored AE terminals in place")
+        .addCommonMixins("appliedEnergistics.MixinPlatformYogTerminal")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.AppliedEnergistics)),
+
+    YOG_SOTHOTH_TERMINAL_WCT(new MixinBuilder("Yog-Sothoth terminal opened wireless crafting terminal lookup")
+        .addCommonMixins("wirelessCraftingTerminal.MixinRandomUtilsYogTerminal")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.WirelessCraftingTerminal)),
+
+    YOG_SOTHOTH_TERMINAL_BOGO(new MixinBuilder("Yog-Sothoth terminal network amount tooltips")
+        .addCommonMixins("inventoryBogoSorter.MixinAe2AmountServiceYogTerminal")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.InventoryBogoSorter)
+        .addRequiredMod(ModList.AppliedEnergistics)
+        .addRequiredMod(ModList.Baubles)),
+
+    FLOATING_WINDOW_MODULAR_UI(new MixinBuilder("Floating window ModularUI hover blocking")
+        .addClientMixins("modularUI.MixinFloatingWindowModularGui")
+        .setPhase(Phase.LATE)),
+
+    MODULAR_UI_LIVE_PALETTE_THEMES(
+        new MixinBuilder("ModularUI 2 screens follow live palette themes").addClientMixins("modularUI2.MixinThemeAPI")
+            .setPhase(Phase.LATE)),
+
+    ME_MINI_TERMINAL_BOGO(new MixinBuilder("ME mini portable terminal native Bogo shortcut destinations")
+        .addClientMixins("inventoryBogoSorter.MixinMiniTerminalShortcuts")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.InventoryBogoSorter)),
+
+    ME_MINI_TERMINAL_MOUSE_TWEAKS(new MixinBuilder("ME mini portable terminal Mouse Tweaks shortcut destinations")
+        .addClientMixins("mouseTweaks.MixinMiniTerminalMouseTweaks")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.MouseTweaks)),
 
     LATE_COMMON(new MixinBuilder("General Late Mixins")
         .addCommonMixins(
             "aeFluidCraft.MixinItemFluidPacket",
             "appliedEnergistics.AccessorAEBaseItemBlock",
             "appliedEnergistics.AccessorContainerUpgradeable",
+            "appliedEnergistics.MixinContainerUpgradeable",
             "appliedEnergistics.AccessorPartInterface",
             "appliedEnergistics.AccessorTileInterface",
             "appliedEnergistics.MixinAdaptorIInventory",
+            "appliedEnergistics.AccessorWrapperMCISidedInventory",
             "appliedEnergistics.MixinDualityInterface",
             "appliedEnergistics.MixinEntityTinyTNTPrimed",
             "appliedEnergistics.MixinTileIOPort",
             "appliedEnergistics.assembler.AccessorContainerPatternTerm",
             "appliedEnergistics.assembler.AccessorInvTracker",
             "appliedEnergistics.assembler.MixinContainerInterfaceTerminal",
+            "appliedEnergistics.MixinCraftingCPUCluster",
             "appliedEnergistics.AccessorTaskProgress",
-            "appliedEnergistics.AccessorSessionCraftCount",
-            "appliedEnergistics.quamtumComputer.MixinCraftingGridCache",
-            "appliedEnergistics.quamtumComputer.MixinCraftingCPUStatus",
-            "bartwork.MixinItemRegistry",
-            "bartwork.MixinMultipleMetalLoader",
-            "bartwork.MixinSimpleMetalLoader",
-            "bartwork.MixinWerkstoff",
-            "bartwork.MixinWerkstoffLoader",
-            "bartwork.MixinMoltenCellLoader",
+            "appliedEnergistics.MixinSessionCraftCount",
+            "appliedEnergistics.quantum.AccessorOptimizePattern",
+            "appliedEnergistics.quantum.AccessorPacketCraftingTreeData",
+            "appliedEnergistics.quantum.MixinContainerOptimizePatterns",
+            "appliedEnergistics.quantum.MixinCraftingGridCache",
+            "appliedEnergistics.quantum.MixinCraftingCPUStatus",
+            "appliedEnergistics.quantum.MixinCraftingCPUClusterQuantumJob",
+            "appliedEnergistics.quantum.MixinContainerCraftConfirm",
             "botania.AccessorEntityDoppleganger",
             "draconicEvolution.AccessorCustomArmorHandler",
             "draconicEvolution.MixinCustomArmorHandler",
@@ -140,6 +197,7 @@ public enum Mixins implements IMixins {
             "gregtech.MixinMTEBetterJukebox",
             "gregtech.MixinMTEForgeOfGods",
             "gregtech.MixinMTEHatch",
+            "gregtech.MixinMTEHatchCraftingInputME",
             "gregtech.MixinMTEHatchOutputMEBase",
             "gregtech.MixinMTEHatchOutputBusME",
             "gregtech.MixinMTEHatchOutputME",
@@ -151,6 +209,7 @@ public enum Mixins implements IMixins {
             "gregtech.MixinMTEHatchSteamBusOutput",
             "gregtech.MixinMTELightningRod",
             "gregtech.MixinMTEPlasmaForge",
+            "gregtech.MixinMTEMultiBlockBaseInterfaceName",
             "gregtech.MixinMTEMultiBlockBaseRecipeProcessing",
             "gregtech.MixinMTETreeFarm",
             "gregtech.MixinProcessingLogic",
@@ -172,11 +231,41 @@ public enum Mixins implements IMixins {
         .addClientMixins(
             "appliedEnergistics.MixinTileCableBusBeamBounds",
             "appliedEnergistics.MixinTESRWrapperBeamRange",
-            // TODO: Restore display-representation name handling when bundled AE2 exposes the updated translateRawName
-            // method.
             "appliedEnergistics.assembler.MixinGuiMEMonitorable",
             "appliedEnergistics.assembler.MixinGuiPatternTerm",
-            "appliedEnergistics.quamtumComputer.MixinGuiCraftingCPUTable")
+            "appliedEnergistics.quantum.MixinGuiCraftingCPUTable",
+            "appliedEnergistics.quantum.MixinGuiCraftAmount",
+            "appliedEnergistics.quantum.MixinGuiCraftConfirm",
+            "appliedEnergistics.quantum.MixinGuiCraftingTree")
+        .setPhase(Phase.LATE)),
+
+    APPLIED_ENERGISTICS_PROCESSING_PATTERN(new MixinBuilder("Applied Energistics processing pattern capacity mixins")
+        .addCommonMixins(
+            "appliedEnergistics.processingPattern.MixinPartPatternTerminal",
+            "appliedEnergistics.processingPattern.MixinPartPatternTerminalEx",
+            "appliedEnergistics.processingPattern.MixinContainerPatternTerm",
+            "appliedEnergistics.processingPattern.MixinContainerPatternTermEx",
+            "appliedEnergistics.processingPattern.MixinWirelessPatternTerminalGuiObject")
+        .addClientMixins("appliedEnergistics.processingPattern.MixinGuiPatternTermEx")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.AppliedEnergistics)),
+
+    APPLIED_ENERGISTICS_PROCESSING_PATTERN_NEI(new MixinBuilder("Applied Energistics processing pattern NEI layout")
+        .addClientMixins("appliedEnergistics.processingPattern.MixinNEIPatternViewHandler")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.AppliedEnergistics)
+        .addRequiredMod(ModList.NotEnoughItems)),
+
+    THAUMIC_ENERGISTICS(new MixinBuilder("Thaumic Energistics multi essentia container compatibility mixins")
+        .addCommonMixins(
+            "thaumicEnergistics.MixinEssentiaTileContainerHelper",
+            "thaumicEnergistics.MixinMEMonitorEssentiaHandler",
+            "thaumicEnergistics.MixinPartEssentiaImportBus")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(ModList.ThaumicEnergistics)),
+
+    THAUMCRAFT_CELESTWEAVE(new MixinBuilder("Celestweave wand capacity compatibility")
+        .addCommonMixins("thaumcraft.MixinItemWandCastingCelestweave")
         .setPhase(Phase.LATE)),
 
     THAUMCRAFT_CLIENT(
@@ -200,12 +289,12 @@ public enum Mixins implements IMixins {
             "gregtech.MixinMTEVoidMinerBaseGui",
             "gregtech.MixinMTEVoidMiners")
         .setPhase(Phase.LATE)
-        .setApplyIf(() -> MainConfig.machine.enableVoidMinerTweak)
+        .setApplyIf(() -> MachineConfig.enableVoidMinerTweak)
         .addExcludedMod(ModList.VMTweak)),
 
     GREGTECH_MAIN_FACING(new MixinBuilder().addCommonMixins("gregtech.MixinMTEBasicMachineFacing")
         .setPhase(Phase.LATE)
-        .setApplyIf(() -> MainConfig.machine.allowMainFacingInteraction)),
+        .setApplyIf(() -> MachineConfig.allowMainFacingInteraction)),
 
     GALAXY_SPACE(new MixinBuilder("Galaxy Space Mixin").addCommonMixins("galaxySpace.MixinRocketRecipeHandler")
         .setPhase(Phase.LATE)
@@ -253,13 +342,13 @@ public enum Mixins implements IMixins {
             "overpowered.MixinGregtechWailaDataProvider",
             "overpowered.MixinParallelHelper")
         .setPhase(Phase.LATE)
-        .setApplyIf(() -> MainConfig.machine.enableRecipeOutputChance)
+        .setApplyIf(() -> MachineConfig.enableRecipeOutputChance)
         .addExcludedMod(ModList.Overpowered)),
 
     OVERPOWERED_TST_CHANGE(
         new MixinBuilder("Overpowered TST Mixin Changes").addCommonMixins("overpowered.MixinGTCM_ParallelHelper")
             .setPhase(Phase.LATE)
-            .setApplyIf(() -> MainConfig.machine.enableRecipeOutputChance)
+            .setApplyIf(() -> MachineConfig.enableRecipeOutputChance)
             .addRequiredMod(ModList.TwistSpaceTechnology)
             .addExcludedMod(ModList.Overpowered)),
 
@@ -292,12 +381,22 @@ public enum Mixins implements IMixins {
             "gregtech.MixinMTEPurificationUnitUVTreatment",
             "gregtech.MixinMTEPurificationUnitDegasser")
         .setPhase(Phase.LATE)
-        .setApplyIf(() -> MainConfig.machine.enablePurificationPlantBuff)),
+        .setApplyIf(() -> MachineConfig.enablePurificationPlantBuff)),
 
     STICK_LATE(new MixinBuilder("Stick Late Mixins")
         .addCommonMixins("stick.MixinTooltipHandlerWaila", "stick.MixinOreDictTooltipHandler")
         .setPhase(Phase.LATE)
-        .setApplyIf(() -> MainConfig.item.stick.enableStickItem)),
+        .setApplyIf(() -> ItemConfig.stick.enableStickItem)),
+
+    STRUCTURE_BOUNDS(
+        new MixinBuilder("Multiblock structure bounds").addCommonMixins("gregtech.MixinStructureCenterWalker")
+            .setPhase(Phase.LATE)),
+
+    AUTO_STRUCTURE_TOOLTIP(new MixinBuilder("Automatic multiblock structure tooltips")
+        .addCommonMixins(
+            "structureLib.MixinLazyStructureElement",
+            "gregtech.MixinMTEEnhancedMultiBlockBaseStructureTooltip")
+        .setPhase(Phase.LATE)),
 
     ET_FUTURUM_ELYTRA(
         new MixinBuilder("InfinityElytra EtFuturum Mixin").addCommonMixins("etFuturum.MixinStartElytraFlyingHandler")

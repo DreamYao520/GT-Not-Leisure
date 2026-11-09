@@ -41,6 +41,7 @@ import com.cleanroommc.modularui.widgets.ListWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
 import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
+import com.gtnllib.gui.widget.GTNLListWidget;
 import com.science.gtnl.ScienceNotLeisure;
 import com.science.gtnl.common.machine.multiblock.EyeOfHarmonyInjector;
 
@@ -90,7 +91,8 @@ public class EyeOfHarmonyInjectorStatusPanel {
                 return new EmptyWidget();
             }
             return createLinkedUnitsList(panelSyncManager, linkedUnitsSyncer);
-        });
+        })
+            .allowC2S();
         linkedUnitsSyncer.setChangeListener(() -> linkedUnitsWidgetSyncer.notifyUpdate(packet -> {}));
         syncManager.syncValue(LINKED_UNITS_WIDGET_SYNC_KEY, linkedUnitsWidgetSyncer);
     }

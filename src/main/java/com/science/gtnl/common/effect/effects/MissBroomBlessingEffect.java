@@ -17,11 +17,12 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 
+import com.gtnllib.mod.ModList;
 import com.reavaritia.common.entity.EntityChronarchClock;
 import com.science.gtnl.api.ITileEntityTickAcceleration;
 import com.science.gtnl.common.effect.EffectBase;
-import com.science.gtnl.config.MainConfig;
-import com.science.gtnl.utils.enums.ModList;
+import com.science.gtnl.config.EffectConfig;
+import com.science.gtnl.config.ReAvaritiaConfig;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
@@ -45,7 +46,7 @@ public class MissBroomBlessingEffect extends EffectBase {
         if (!(entity instanceof EntityPlayer player) || entity.worldObj.isRemote) return;
         World world = entity.worldObj;
         long tick = world.getTotalWorldTime();
-        MainConfig.Effect.MissBroomBlessing config = MainConfig.effect.miss_broom_blessing;
+        EffectConfig.MissBroomBlessing config = EffectConfig.miss_broom_blessing;
         if (config.enableCleanse && tick % (config.cleanseIntervalSeconds * 20L) == 0L) cleanse(player);
         if (!config.enableAcceleration || config.accelerationPercent <= 0) return;
         long phase = (tick + 1L) % 100L;
@@ -97,7 +98,7 @@ public class MissBroomBlessingEffect extends EffectBase {
 
     @SubscribeEvent
     public void onLivingFall(LivingFallEvent event) {
-        if (MainConfig.effect.miss_broom_blessing.preventFallDamage && event.entity instanceof EntityPlayer player
+        if (EffectConfig.miss_broom_blessing.preventFallDamage && event.entity instanceof EntityPlayer player
             && !player.worldObj.isRemote
             && player.getActivePotionEffect(this) != null) event.setCanceled(true);
     }
@@ -112,8 +113,8 @@ public class MissBroomBlessingEffect extends EffectBase {
     }
 
     private static boolean isBlacklisted(TileEntity tile) {
-        String[] clockBlacklist = MainConfig.re_avaritia.chronarch_clock.chronarchsClockTileEntityBlacklist;
-        String[] blessingBlacklist = MainConfig.effect.miss_broom_blessing.tileEntityBlacklist;
+        String[] clockBlacklist = ReAvaritiaConfig.chronarch_clock.chronarchsClockTileEntityBlacklist;
+        String[] blessingBlacklist = EffectConfig.miss_broom_blessing.tileEntityBlacklist;
         if (clockBlacklist.length == 0 && blessingBlacklist.length == 0) return false;
         String registryName = EntityChronarchClock.getRegistryName(tile);
         if (registryName == null) return false;

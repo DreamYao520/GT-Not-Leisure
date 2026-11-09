@@ -12,12 +12,11 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
-import com.science.gtnl.client.GTNLCreativeTabs;
+import com.gtnllib.text.TextEffects;
+import com.science.gtnl.common.item.GTNLCreativeTabs;
 import com.science.gtnl.common.item.wand.MajoWandStage;
 import com.science.gtnl.utils.enums.GTNLItemList;
-import com.science.gtnl.utils.text.effect.TextEffects;
 
-import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import thaumcraft.api.aspects.Aspect;
@@ -37,7 +36,7 @@ public class ItemMajoWand extends ItemWandCasting {
     public ItemMajoWand() {
         setUnlocalizedName("gtnl.majo_wand");
         setCreativeTab(GTNLCreativeTabs.GTNotLeisureItem);
-        GameRegistry.registerItem(this, "majo_wand");
+
         for (MajoWandStage stage : MajoWandStage.values()) {
             String tag = "gtnl_majo_" + stage.key;
             ItemStack component = new ItemStack(this, 1, stage.ordinal());

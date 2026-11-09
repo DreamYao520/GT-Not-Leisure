@@ -13,12 +13,11 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
-import com.science.gtnl.client.GTNLCreativeTabs;
+import com.gtnllib.text.TextEffects;
 import com.science.gtnl.common.entity.EntityMajoBroom;
+import com.science.gtnl.common.item.GTNLCreativeTabs;
 import com.science.gtnl.utils.enums.GTNLItemList;
-import com.science.gtnl.utils.text.effect.TextEffects;
 
-import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -35,7 +34,7 @@ public class ItemMajoBroom extends Item {
         setUnlocalizedName("gtnl." + broomName);
         setMaxStackSize(1);
         setCreativeTab(GTNLCreativeTabs.GTNotLeisureItem);
-        GameRegistry.registerItem(this, broomName);
+
         itemList.set(new ItemStack(this));
     }
 

@@ -1,24 +1,33 @@
 package com.science.gtnl.common.block.blocks.tile;
 
+import java.util.Map;
+
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.science.gtnl.compat.thaumicenergistics.InfusionProviders;
+
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import thaumcraft.api.ThaumcraftApiHelper;
 import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.AspectList;
 import thaumcraft.api.aspects.IEssentiaTransport;
 
-public class TileEntityMultiEssentiaInputHatch extends TileEntityEssentiaHatch {
+public class TileEntityMultiEssentiaInputHatch extends TileEntityEssentiaHatch implements IMultiEssentiaContainer {
 
     private static final String STORED_ASPECTS_KEY = "StoredAspects";
     private static final int TRANSFER_PER_TICK = 16;
     private static final int SUCTION = 128;
+    private static final int DEMAND_DURATION_TICKS = 200;
 
     public static final int MAX_CAPACITY = 4096;
 
     private final AspectList storedAspects = new AspectList();
     private final MultiEssentiaStorage storage = new MultiEssentiaStorage(storedAspects, MAX_CAPACITY);
+    private final Map<Aspect, EssentiaDemand> demands = new Object2ObjectLinkedOpenHashMap<>();
+    private Aspect providerRequest;
+    private int demandCursor;
 
     @Override
     public void readFromNBT(NBTTagCompound tag) {
@@ -93,11 +102,6 @@ public class TileEntityMultiEssentiaInputHatch extends TileEntityEssentiaHatch {
     }
 
     @Override
-    public boolean reduceStoredEssentia(Aspect aspect, int amount) {
-        return takeFromContainer(aspect, amount);
-    }
-
-    @Override
     public boolean isConnectable(ForgeDirection face) {
         return isValidFace(face);
     }
@@ -108,26 +112,20 @@ public class TileEntityMultiEssentiaInputHatch extends TileEntityEssentiaHatch {
     }
 
     @Override
-    public boolean canOutputTo(ForgeDirection face) {
-        return false;
-    }
-
-    @Override
     public void setSuction(Aspect aspect, int amount) {}
 
     @Override
     public Aspect getSuctionType(ForgeDirection face) {
-        return null;
+        if (providerRequest == null || worldObj == null || !isValidFace(face)) return null;
+
+        TileEntity neighbor = worldObj
+            .getTileEntity(xCoord + face.offsetX, yCoord + face.offsetY, zCoord + face.offsetZ);
+        return InfusionProviders.isEssentiaProvider(neighbor) ? providerRequest : null;
     }
 
     @Override
     public int getSuctionAmount(ForgeDirection face) {
         return canInputFrom(face) && getTotalAmount() < MAX_CAPACITY ? SUCTION : 0;
-    }
-
-    @Override
-    public int takeEssentia(Aspect aspect, int amount, ForgeDirection face) {
-        return 0;
     }
 
     @Override
@@ -148,24 +146,30 @@ public class TileEntityMultiEssentiaInputHatch extends TileEntityEssentiaHatch {
     }
 
     @Override
-    public int getMinimumSuction() {
-        return 0;
-    }
-
-    @Override
-    public boolean renderExtendedTube() {
-        return false;
-    }
-
-    @Override
     public void updateEntity() {
         if (worldObj == null || worldObj.isRemote || getTotalAmount() >= MAX_CAPACITY) {
             return;
         }
 
+        updateProviderRequest();
         fillCache(TRANSFER_PER_TICK);
     }
 
+    public boolean requestEssentia(Aspect aspect, int amount) {
+        if (worldObj == null || aspect == null || amount <= 0 || !doesContainerAccept(aspect)) return false;
+        if (!hasAdjacentEssentiaProvider()) return false;
+
+        long target = Math.min(MAX_CAPACITY, (long) storage.getAmount(aspect) + amount);
+        demands.put(aspect, new EssentiaDemand((int) target, worldObj.getTotalWorldTime() + DEMAND_DURATION_TICKS));
+        return true;
+    }
+
+    @Override
+    public int getEssentiaCapacity() {
+        return MAX_CAPACITY;
+    }
+
+    @Override
     public int getTotalAmount() {
         return storage.getTotalAmount();
     }
@@ -195,6 +199,11 @@ public class TileEntityMultiEssentiaInputHatch extends TileEntityEssentiaHatch {
             if (sourceAspect == null || !doesContainerAccept(sourceAspect)) continue;
 
             int requested = Math.min(remainingBudget, source.getEssentiaAmount(sourceSide));
+            if (sourceAspect == providerRequest && InfusionProviders.isEssentiaProvider(tile)) {
+                requested = Math.min(requested, getRemainingDemand(providerRequest));
+            }
+            if (requested <= 0) continue;
+
             int taken = source.takeEssentia(sourceAspect, requested, sourceSide);
             if (taken <= 0) continue;
 
@@ -204,6 +213,47 @@ public class TileEntityMultiEssentiaInputHatch extends TileEntityEssentiaHatch {
         }
 
         return transferred;
+    }
+
+    private void updateProviderRequest() {
+        providerRequest = null;
+        if (demands.isEmpty()) return;
+
+        long worldTime = worldObj.getTotalWorldTime();
+        demands.entrySet()
+            .removeIf(
+                entry -> entry.getValue().expiresAt <= worldTime
+                    || storage.getAmount(entry.getKey()) >= entry.getValue().targetAmount);
+        if (demands.isEmpty()) return;
+
+        Aspect[] requestedAspects = demands.keySet()
+            .toArray(new Aspect[0]);
+        providerRequest = requestedAspects[Math.floorMod(demandCursor++, requestedAspects.length)];
+    }
+
+    private int getRemainingDemand(Aspect aspect) {
+        EssentiaDemand demand = demands.get(aspect);
+        return demand == null ? 0 : Math.max(0, demand.targetAmount - storage.getAmount(aspect));
+    }
+
+    private boolean hasAdjacentEssentiaProvider() {
+        for (ForgeDirection direction : ForgeDirection.VALID_DIRECTIONS) {
+            TileEntity neighbor = worldObj
+                .getTileEntity(xCoord + direction.offsetX, yCoord + direction.offsetY, zCoord + direction.offsetZ);
+            if (InfusionProviders.isEssentiaProvider(neighbor)) return true;
+        }
+        return false;
+    }
+
+    private static class EssentiaDemand {
+
+        private final int targetAmount;
+        private final long expiresAt;
+
+        private EssentiaDemand(int targetAmount, long expiresAt) {
+            this.targetAmount = targetAmount;
+            this.expiresAt = expiresAt;
+        }
     }
 
     private static boolean isValidFace(ForgeDirection face) {

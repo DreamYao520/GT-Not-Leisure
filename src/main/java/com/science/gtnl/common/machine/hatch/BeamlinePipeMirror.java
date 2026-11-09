@@ -18,6 +18,7 @@ import gtnhlanth.common.beamline.IConnectsToBeamline;
 import gtnhlanth.common.beamline.MTEBeamlinePipe;
 import gtnhlanth.common.hatch.MTEHatchInputBeamline;
 
+@IMetaTileEntity.SkipGenerateName
 @IMetaTileEntity.SkipGenerateDescription
 public class BeamlinePipeMirror extends MTEBeamlinePipe {
 
@@ -32,6 +33,16 @@ public class BeamlinePipeMirror extends MTEBeamlinePipe {
 
     public BeamlinePipeMirror(String name) {
         super(name);
+    }
+
+    @Override
+    public String getLocalNameKey() {
+        return "gtnl.blockmachines.beamlinepipemirror.name";
+    }
+
+    @Override
+    public String getLocalName() {
+        return StatCollector.translateToLocal(getLocalNameKey());
     }
 
     @Override
@@ -143,6 +154,36 @@ public class BeamlinePipeMirror extends MTEBeamlinePipe {
                 } else {
                     return null;
                 }
+            } else {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    // Pipes passed on the way are marked used.
+    public static MTEHatchInputBeamline findInputAlongMirrors(IGregTechTileEntity outputBase) {
+        ForgeDirection front = outputBase.getFrontFacing();
+        ForgeDirection opposite = front.getOpposite();
+
+        for (short dist = 1; dist <= 129; dist++) {
+            IGregTechTileEntity tGTTileEntity = outputBase.getIGregTechTileEntityAtSideAndDistance(front, dist);
+            if (tGTTileEntity == null) return null;
+
+            IMetaTileEntity aMetaTileEntity = tGTTileEntity.getMetaTileEntity();
+            if (aMetaTileEntity instanceof BeamlinePipeMirror tMirror) {
+                tGTTileEntity = tMirror.bendAround(opposite);
+                if (tGTTileEntity == null) return null;
+
+                aMetaTileEntity = tGTTileEntity.getMetaTileEntity();
+                opposite = tMirror.chainedFrontFacing;
+            }
+
+            if (aMetaTileEntity instanceof MTEHatchInputBeamline inputBeamline
+                && opposite == tGTTileEntity.getFrontFacing()) {
+                return inputBeamline;
+            } else if (aMetaTileEntity instanceof MTEBeamlinePipe beamlinePipe) {
+                beamlinePipe.markUsed();
             } else {
                 return null;
             }

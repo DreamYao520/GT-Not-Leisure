@@ -14,7 +14,7 @@ import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 
 import com.science.gtnl.common.item.items.ItemElainaBrooch;
-import com.science.gtnl.config.MainConfig;
+import com.science.gtnl.config.ItemConfig;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import thaumcraft.common.lib.potions.PotionWarpWard;
@@ -60,7 +60,7 @@ public class MajoArmorHandler {
         boolean wearingRobe = robe != null && robe.getItem() instanceof MajoRobe;
         String playerName = player.getGameProfile()
             .getName();
-        boolean travelerSet = MainConfig.item.enableSpecialPlayerSetBonuses && wearingHat
+        boolean travelerSet = ItemConfig.enableSpecialPlayerSetBonuses && wearingHat
             && wearingRobe
             && ("DreamYao520".equals(playerName) || "SereiaWei".equals(playerName));
 

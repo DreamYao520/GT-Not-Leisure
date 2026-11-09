@@ -5,7 +5,6 @@ import static thaumcraft.common.config.ConfigItems.itemJarNode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -13,20 +12,25 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import com.gtnewhorizon.gtnhlib.util.data.ItemId;
+import com.science.gtnl.compat.avaritia.AvaritiaRecipes;
 import com.science.gtnl.utils.AspectTooltipUtils;
+import com.science.gtnl.utils.enums.ModsItemlist;
+import com.science.gtnl.utils.recipes.GTNLProcessingLogic;
 import com.science.gtnl.utils.recipes.RecipeBuilder;
 
-import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.common.registry.GameRegistry;
-import fox.spiteful.avaritia.items.LudicrousItems;
 import gregtech.api.enums.Mods;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
 import gregtech.api.interfaces.IRecipeMap;
+import gregtech.api.logic.ProcessingLogic;
 import gregtech.api.objects.ItemData;
 import gregtech.api.recipe.RecipeMetadataKey;
 import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTOreDictUnificator;
+import gregtech.api.util.GTRecipe;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import thaumcraft.api.ThaumcraftApi;
 import thaumcraft.api.aspects.Aspect;
@@ -37,83 +41,59 @@ import thaumcraft.api.crafting.ShapelessArcaneRecipe;
 
 public class TCRecipeTools {
 
-    public static ArrayList<ShapelessArcaneCraftingRecipe> ShaplessAR = new ArrayList<>();
-    public static ArrayList<ShapedArcaneCraftingRecipe> ShapedAR = new ArrayList<>();
-    public static ArrayList<InfusionCraftingRecipe> ICR = new ArrayList<>();
+    public static ObjectArrayList<ShapelessArcaneCraftingRecipe> ShaplessAR = new ObjectArrayList<>();
+    public static ObjectArrayList<ShapedArcaneCraftingRecipe> ShapedAR = new ObjectArrayList<>();
+    public static ObjectArrayList<InfusionCraftingRecipe> ICR = new ObjectArrayList<>();
 
     public TCRecipeTools() {}
 
-    public static final ItemStack IC2_MACHINE = GTModHandler.getModItem(Mods.IndustrialCraft2.ID, "blockMachine", 1, 1);
+    public static final ItemStack IC2_MACHINE = ModsItemlist.IC2IronFurnace.get(1);
     public static final ItemStack BLAST_FURNACE_TEMPLATE = GTModHandler
         .getModItem(Mods.EtFuturumRequiem.ID, "blast_furnace", 1);
-    public static final Set<ItemId> UNCONSUMED_ITEMS = new HashSet<>();
-    public static final Set<ItemId> PRIMORDIAL_PEARL_RETURN_EXCLUSIONS = new HashSet<>();
+    public static final Set<ItemId> UNCONSUMED_ITEMS = new ObjectOpenHashSet<>();
+    public static final Set<ItemId> PRIMORDIAL_PEARL_RETURN_EXCLUSIONS = new ObjectOpenHashSet<>();
 
-    // 配方时长随源质总量自动生成：基础时长 + 每点源质 × 总量。
+    // Recipe duration is derived from the total aspect amount.
     private static final int ARCANE_DURATION_BASE_TICKS = 20;
 
-    // 每点源质的时长系数：奥术合成较快，注魔较慢，可按池调。
+    // Duration coefficients distinguish arcane crafting from infusion.
     public static final int ARCANE_DURATION_TICKS_PER_ASPECT = 8;
     public static final int INFUSION_DURATION_TICKS_PER_ASPECT = 16;
 
     private static Set<Item> skipItems;
 
     static {
-        if (Mods.Avaritia.isModLoaded()) addAvaritia();
+        AvaritiaRecipes.thaumcraftExclusions();
 
-        if (Mods.BloodMagic.isModLoaded()) {
-            UNCONSUMED_ITEMS.add(ItemId.create(GTModHandler.getModItem(Mods.BloodMagic.ID, "weakBloodOrb", 1)));
-            UNCONSUMED_ITEMS.add(ItemId.create(GTModHandler.getModItem(Mods.BloodMagic.ID, "apprenticeBloodOrb", 1)));
-            UNCONSUMED_ITEMS.add(ItemId.create(GTModHandler.getModItem(Mods.BloodMagic.ID, "magicianBloodOrb", 1)));
-            UNCONSUMED_ITEMS.add(ItemId.create(GTModHandler.getModItem(Mods.BloodMagic.ID, "masterBloodOrb", 1)));
-            UNCONSUMED_ITEMS.add(ItemId.create(GTModHandler.getModItem(Mods.BloodMagic.ID, "archmageBloodOrb", 1)));
-            UNCONSUMED_ITEMS.add(ItemId.create(GTModHandler.getModItem(Mods.BloodMagic.ID, "transcendentBloodOrb", 1)));
-            UNCONSUMED_ITEMS.add(ItemId.create(GTModHandler.getModItem(Mods.BloodMagic.ID, "creativeFiller", 1)));
+        for (ModsItemlist orb : new ModsItemlist[] { ModsItemlist.BloodMagicWeakBloodOrb,
+            ModsItemlist.BloodMagicApprenticeBloodOrb, ModsItemlist.BloodMagicMagicianBloodOrb,
+            ModsItemlist.BloodMagicMasterBloodOrb, ModsItemlist.BloodMagicArchmageBloodOrb,
+            ModsItemlist.BloodMagicTranscendentBloodOrb, ModsItemlist.BloodMagicCreativeFiller,
+            ModsItemlist.ForbiddenMagicEldritchOrb }) {
+            ItemStack stack = orb.get(1);
+            if (stack != null) UNCONSUMED_ITEMS.add(ItemId.create(stack));
         }
 
-        if (Mods.ForbiddenMagic.isModLoaded()) {
-            UNCONSUMED_ITEMS.add(ItemId.create(GTModHandler.getModItem(Mods.ForbiddenMagic.ID, "EldritchOrb", 1)));
-        }
-
-        UNCONSUMED_ITEMS.add(ItemId.create(GTModHandler.getModItem(Mods.Thaumcraft.ID, "FocusWarding", 1)));
+        UNCONSUMED_ITEMS.add(ItemId.create(ModsItemlist.ThaumcraftFocusWarding.get(1)));
     }
 
-    @Optional.Method(modid = "Avaritia")
-    public static void addAvaritia() {
-        ItemId bigPearl = ItemId.create(new ItemStack(LudicrousItems.bigPearl));
-        UNCONSUMED_ITEMS.add(bigPearl);
-        PRIMORDIAL_PEARL_RETURN_EXCLUSIONS.add(bigPearl);
-        UNCONSUMED_ITEMS.add(ItemId.create(new ItemStack(LudicrousItems.armok_orb)));
-    }
-
-    // 判断某个 TC 物品是否应从配方池中跳过（罐节点、以及特定联动模组物品）。
-    // 供多个配方池共用同一份懒加载集合。
+    // Identify Thaumcraft items that should be omitted from recipe pools.
+    // Multiple recipe pools share the lazily initialized set.
     public static boolean shouldSkipThaumcraftItem(Item item) {
         if (skipItems == null) {
-            skipItems = new HashSet<>();
+            skipItems = new ObjectOpenHashSet<>();
             skipItems.add(itemJarNode);
 
-            if (Mods.ThaumicBases.isModLoaded()) {
-                Item revolver = GameRegistry.findItem(Mods.ThaumicBases.ID, "revolver");
-
-                if (null != revolver) {
-                    skipItems.add(revolver);
-                }
-            }
-
-            if (Mods.Gadomancy.isModLoaded()) {
-                Item itemEtherealFamiliar = GameRegistry.findItem(Mods.Gadomancy.ID, "ItemEtherealFamiliar");
-
-                if (null != itemEtherealFamiliar) {
-                    skipItems.add(itemEtherealFamiliar);
-                }
-            }
+            Item revolver = GameRegistry.findItem(Mods.ThaumicBases.ID, "revolver");
+            if (revolver != null) skipItems.add(revolver);
+            Item etherealFamiliar = GameRegistry.findItem(Mods.Gadomancy.ID, "ItemEtherealFamiliar");
+            if (etherealFamiliar != null) skipItems.add(etherealFamiliar);
         }
 
         return skipItems.contains(item);
     }
 
-    // 归一化 TC 配方输入：IC2 机器替换为高炉模板、不可消耗物品清零。
+    // Normalize Thaumcraft inputs and replace IC2 machines with blast furnace templates.
     public static ItemStack[] checkInputSpecial(ItemStack... itemStacks) {
         final int len = itemStacks.length;
         ItemStack[] copy = new ItemStack[len];
@@ -144,9 +124,9 @@ public class TCRecipeTools {
         return copy;
     }
 
-    // TC 组件 → GT 配方输入元素。
-    // GT 电路板按其档位矿辞整体展开，使同档位任意电路板都能满足配方（例如 HV 档位任选一种高级电路板）；
-    // 其余组件保持单一物品语义。数量为 0 的组件是“不消耗”标记，不做展开。
+    // Convert Thaumcraft components into GregTech recipe inputs.
+    // Circuit boards expand by tier so any board from the same tier is accepted.
+    // Other components retain single-item semantics, and zero quantity means non-consuming.
     public static Object toGTInput(ItemStack stack) {
         if (stack == null || stack.stackSize <= 0) return stack;
 
@@ -157,8 +137,8 @@ public class TCRecipeTools {
             return stack;
         }
 
-        // ItemData.toString() 就是该档位电路板注册时使用的矿辞名，两者必然一致。
-        // 矿辞为空时退回单一物品，否则 GT 会因“矿辞条目为空”直接丢弃整张配方。
+        // ItemData.toString() is the ore dictionary name registered for the tier.
+        // Fall back to a single item when the ore dictionary entry is empty.
         Object oreName = OrePrefixes.circuit.get(data.mMaterial.mMaterial);
         if (oreName == null || GTOreDictUnificator.getOres(oreName)
             .isEmpty()) {
@@ -178,9 +158,13 @@ public class TCRecipeTools {
         return converted;
     }
 
-    // 将源质列表构建为 NEI special 槽的展示 ItemStack 数组。
+    // Build the ItemStack array displayed in the NEI aspect slots.
     public static ItemStack[] createAspectDisplayStacks(AspectList aspectList) {
-        if (aspectList == null || aspectList.size() == 0) {
+        return createAspectDisplayStacksFromCopy(copyAspectList(aspectList));
+    }
+
+    private static ItemStack[] createAspectDisplayStacksFromCopy(AspectList aspectList) {
+        if (aspectList.size() == 0) {
             return new ItemStack[0];
         }
 
@@ -194,86 +178,210 @@ public class TCRecipeTools {
         return stacks;
     }
 
-    public static ItemStack[] appendPrimordialPearlReturns(ItemStack[] outputs) {
-        if (outputs == null || outputs.length == 0) return outputs;
+    public static ItemStack[] appendPrimordialPearlReturns(ItemStack[] outputs, ProcessingLogic logic) {
+        if (!(logic instanceof GTNLProcessingLogic gtnlLogic)) return outputs;
+        return appendPrimordialPearlReturns(outputs, gtnlLogic.getAppliedRecipe(), gtnlLogic.getCurrentParallels());
+    }
+
+    public static ItemStack[] appendPrimordialPearlReturns(ItemStack[] outputs, GTRecipe recipe, int parallels) {
+        if (outputs == null || recipe == null || recipe.mOutputs == null || parallels <= 0) return outputs;
 
         ItemId primordialPearl = ItemId.create(new ItemStack(itemEldritchObject, 1, 3));
-        int pearlCount = 0;
-        for (ItemStack output : outputs) {
+        long pearlsPerCraft = 0;
+        for (ItemStack output : recipe.mOutputs) {
             if (output == null || PRIMORDIAL_PEARL_RETURN_EXCLUSIONS.contains(ItemId.create(output))) continue;
 
-            InfusionRecipe recipe = ThaumcraftApi.getInfusionRecipe(output);
-            if (recipe == null || recipe.getComponents() == null) continue;
+            InfusionRecipe infusionRecipe = ThaumcraftApi.getInfusionRecipe(output);
+            if (infusionRecipe == null || infusionRecipe.getComponents() == null) continue;
 
-            for (ItemStack component : recipe.getComponents()) {
-                if (component != null && primordialPearl.equals(ItemId.create(component))) pearlCount++;
+            for (ItemStack component : infusionRecipe.getComponents()) {
+                if (component != null && primordialPearl.equals(ItemId.create(component))) pearlsPerCraft++;
             }
         }
 
-        if (pearlCount == 0) return outputs;
+        long pearlCount = pearlsPerCraft * parallels;
+        if (pearlCount <= 0) return outputs;
 
-        ItemStack[] withReturns = Arrays.copyOf(outputs, outputs.length + 1);
-        withReturns[outputs.length] = new ItemStack(itemEldritchObject, pearlCount, 3);
-        return withReturns;
+        List<ItemStack> withReturns = new ObjectArrayList<>(Arrays.asList(outputs));
+        while (pearlCount > 0) {
+            int stackSize = (int) Math.min(64, pearlCount);
+            withReturns.add(new ItemStack(itemEldritchObject, stackSize, 3));
+            pearlCount -= stackSize;
+        }
+        return withReturns.toArray(new ItemStack[0]);
     }
 
-    // 统一注册一张携带源质/研究元数据的 TC 配方（奥术合成与注魔通用）。
-    // 便捷重载：时长按源质总量自动生成（奥术系数），电压 LV。
+    // Register a Thaumcraft recipe with aspect and research metadata.
+    // The convenience overload derives duration from the aspect total at LV voltage.
     public static void addArcaneRecipe(IRecipeMap map, ItemStack[] inputs, ItemStack[] output, AspectList aspects,
         String research, RecipeMetadataKey<AspectList> aspectKey, RecipeMetadataKey<String> researchKey) {
 
-        addArcaneRecipe(
+        AspectList snapshot = copyAspectList(aspects);
+        addArcaneRecipeWithSnapshot(
             map,
             inputs,
             output,
-            aspects,
+            snapshot,
             research,
             aspectKey,
             researchKey,
-            computeAspectDuration(aspects, ARCANE_DURATION_TICKS_PER_ASPECT),
+            computeAspectDurationFromCopy(snapshot, ARCANE_DURATION_TICKS_PER_ASPECT),
             TierEU.RECIPE_LV);
     }
 
-    // 根据源质总量与每点源质系数生成处理时长（tick）：基础时长 + 每点源质 × 总量。
+    // Derive processing duration in ticks from the aspect total.
     public static int computeAspectDuration(AspectList aspects, int ticksPerAspect) {
-        int totalAmount = aspects == null ? 0 : aspects.visSize();
+        if (aspects == null) {
+            return ARCANE_DURATION_BASE_TICKS;
+        }
+
+        int totalAmount = 0;
+        for (Aspect aspect : aspects.getAspects()) {
+            if (aspect != null) {
+                totalAmount += aspects.getAmount(aspect);
+            }
+        }
         return ARCANE_DURATION_BASE_TICKS + totalAmount * ticksPerAspect;
     }
 
-    // 可自定义时长（tick）与电压（EU/t）。
+    // Allow callers to provide duration in ticks and voltage in EU/t.
     public static void addArcaneRecipe(IRecipeMap map, ItemStack[] inputs, ItemStack[] output, AspectList aspects,
         String research, RecipeMetadataKey<AspectList> aspectKey, RecipeMetadataKey<String> researchKey, int duration,
         long eut) {
+
+        addArcaneRecipeWithSnapshot(
+            map,
+            inputs,
+            output,
+            copyAspectList(aspects),
+            research,
+            aspectKey,
+            researchKey,
+            duration,
+            eut);
+    }
+
+    public static void addArcaneRecipeWithCircuit(IRecipeMap map, ItemStack[] inputs, ItemStack[] output,
+        AspectList aspects, String research, RecipeMetadataKey<AspectList> aspectKey,
+        RecipeMetadataKey<String> researchKey, int duration, long eut, int circuit) {
+
+        addArcaneRecipeWithSnapshotAndCircuit(
+            map,
+            inputs,
+            output,
+            copyAspectList(aspects),
+            research,
+            aspectKey,
+            researchKey,
+            duration,
+            eut,
+            circuit);
+    }
+
+    public static void addArcaneRecipeWithCircuit(IRecipeMap map, ItemStack[] inputs, ItemStack[] output,
+        AspectList aspects, String research, RecipeMetadataKey<AspectList> aspectKey,
+        RecipeMetadataKey<String> researchKey, int circuit) {
+
+        AspectList snapshot = copyAspectList(aspects);
+        addArcaneRecipeWithCircuit(
+            map,
+            inputs,
+            output,
+            snapshot,
+            research,
+            aspectKey,
+            researchKey,
+            computeAspectDurationFromCopy(snapshot, ARCANE_DURATION_TICKS_PER_ASPECT),
+            TierEU.RECIPE_LV,
+            circuit);
+    }
+
+    private static void addArcaneRecipeWithSnapshot(IRecipeMap map, ItemStack[] inputs, ItemStack[] output,
+        AspectList snapshot, String research, RecipeMetadataKey<AspectList> aspectKey,
+        RecipeMetadataKey<String> researchKey, int duration, long eut) {
 
         RecipeBuilder.builder()
             .ignoreCollision()
             .clearInvalid()
             .itemInputsUnified(inputs)
             .itemOutputs(output)
-            .special(createAspectDisplayStacks(aspects))
-            .metadata(aspectKey, aspects.copy())
+            .metadata(aspectKey, snapshot)
             .metadata(researchKey, research)
             .duration(duration)
             .eut(eut)
             .addTo(map);
     }
 
-    // 同上，但输入允许携带矿辞展开项（见 toGTInput），用于需要接受同档位多种物品的配方。
+    private static void addArcaneRecipeWithSnapshotAndCircuit(IRecipeMap map, ItemStack[] inputs, ItemStack[] output,
+        AspectList snapshot, String research, RecipeMetadataKey<AspectList> aspectKey,
+        RecipeMetadataKey<String> researchKey, int duration, long eut, int circuit) {
+
+        RecipeBuilder.builder()
+            .ignoreCollision()
+            .clearInvalid()
+            .itemInputsUnified(inputs)
+            .circuit(circuit)
+            .itemOutputs(output)
+            .metadata(aspectKey, snapshot)
+            .metadata(researchKey, research)
+            .duration(duration)
+            .eut(eut)
+            .addTo(map);
+    }
+
+    // Register the same recipe form with ore dictionary alternatives from toGTInput.
     public static void addArcaneRecipe(IRecipeMap map, Object[] inputs, ItemStack[] output, AspectList aspects,
         String research, RecipeMetadataKey<AspectList> aspectKey, RecipeMetadataKey<String> researchKey, int duration,
         long eut) {
+
+        AspectList snapshot = copyAspectList(aspects);
 
         RecipeBuilder.builder()
             .ignoreCollision()
             .clearInvalid()
             .itemInputs(inputs)
             .itemOutputs(output)
-            .special(createAspectDisplayStacks(aspects))
-            .metadata(aspectKey, aspects.copy())
+            .metadata(aspectKey, snapshot)
             .metadata(researchKey, research)
             .duration(duration)
             .eut(eut)
             .addTo(map);
+    }
+
+    public static void addArcaneRecipeWithCircuit(IRecipeMap map, Object[] inputs, ItemStack[] output,
+        AspectList aspects, String research, RecipeMetadataKey<AspectList> aspectKey,
+        RecipeMetadataKey<String> researchKey, int duration, long eut, int circuit) {
+
+        AspectList snapshot = copyAspectList(aspects);
+        RecipeBuilder.builder()
+            .ignoreCollision()
+            .clearInvalid()
+            .itemInputs(inputs)
+            .circuit(circuit)
+            .itemOutputs(output)
+            .metadata(aspectKey, snapshot)
+            .metadata(researchKey, research)
+            .duration(duration)
+            .eut(eut)
+            .addTo(map);
+    }
+
+    public static void addArcaneRecipeWithCircuit(IRecipeMap map, Object[] inputs, ItemStack[] output,
+        AspectList aspects, String research, RecipeMetadataKey<AspectList> aspectKey,
+        RecipeMetadataKey<String> researchKey, int circuit) {
+
+        AspectList snapshot = copyAspectList(aspects);
+        addArcaneRecipeWithCircuit(
+            map,
+            inputs,
+            output,
+            snapshot,
+            research,
+            aspectKey,
+            researchKey,
+            computeAspectDurationFromCopy(snapshot, ARCANE_DURATION_TICKS_PER_ASPECT),
+            TierEU.RECIPE_LV,
+            circuit);
     }
 
     public static void getShapedArcaneCraftingRecipe() {
@@ -335,7 +443,29 @@ public class TCRecipeTools {
                 ICR.add(y);
             }
         }
+    }
 
+    public static AspectList copyAspectList(AspectList source) {
+        if (source == null) {
+            return new AspectList();
+        }
+
+        AspectList copy = new AspectList();
+        if (source.size() == 0) {
+            return copy;
+        }
+
+        Aspect[] aspects = source.getAspects();
+        for (Aspect aspect : aspects) {
+            if (aspect != null) {
+                copy.add(aspect, source.getAmount(aspect));
+            }
+        }
+        return copy;
+    }
+
+    public static int computeAspectDurationFromCopy(AspectList aspects, int ticksPerAspect) {
+        return ARCANE_DURATION_BASE_TICKS + aspects.visSize() * ticksPerAspect;
     }
 
     public static class ShapedArcaneCraftingRecipe {
@@ -350,7 +480,7 @@ public class TCRecipeTools {
             String research) {
             this.InputItems = InputItems;
             this.OutputItem = OutputItem;
-            this.InputAspects = inputAspects == null ? new AspectList() : inputAspects;
+            this.InputAspects = copyAspectList(inputAspects);
             this.Research = research == null ? "" : research;
         }
 
@@ -379,7 +509,7 @@ public class TCRecipeTools {
             String research) {
             this.InputItems = InputItems;
             this.OutputItem = OutputItem;
-            this.InputAspects = inputAspects == null ? new AspectList() : inputAspects;
+            this.InputAspects = copyAspectList(inputAspects);
             this.Research = research == null ? "" : research;
         }
 
@@ -410,7 +540,7 @@ public class TCRecipeTools {
             this.InputItem = inputItem;
             this.OutputItem = (ItemStack) outputItem;
             this.Components = components;
-            this.InputAspects = inputAspects == null ? new AspectList() : inputAspects;
+            this.InputAspects = copyAspectList(inputAspects);
             this.Research = research == null ? "" : research;
         }
 

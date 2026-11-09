@@ -8,12 +8,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 
-import com.science.gtnl.client.GTNLCreativeTabs;
+import com.gtnllib.text.TextEffects;
+import com.science.gtnl.common.item.GTNLCreativeTabs;
 import com.science.gtnl.common.item.wand.MajoWandStage;
 import com.science.gtnl.utils.enums.GTNLItemList;
-import com.science.gtnl.utils.text.effect.TextEffects;
 
-import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -25,7 +24,7 @@ public class ItemMajoWandCore extends Item {
         setMaxDamage(0);
         setTextureName("thaumcraft:charm");
         setCreativeTab(GTNLCreativeTabs.GTNotLeisureItem);
-        GameRegistry.registerItem(this, "majo_wand_core");
+
         GTNLItemList.MajoWandCore.set(createStack(MajoWandStage.DEPARTURE));
     }
 

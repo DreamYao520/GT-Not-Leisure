@@ -3,7 +3,6 @@ package com.science.gtnl.common.machine.hatch;
 import static net.minecraft.util.StatCollector.translateToLocal;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -29,7 +29,9 @@ import gregtech.common.tileentities.machines.multi.nanochip.factory.VacuumFactor
 import gregtech.common.tileentities.machines.multi.nanochip.hatches.MTEHatchVacuumConveyorInput;
 import gregtech.common.tileentities.machines.multi.nanochip.util.CircuitComponent;
 import gregtech.common.tileentities.machines.multi.nanochip.util.CircuitComponentPacket;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
+@IMetaTileEntity.SkipGenerateName
 @IMetaTileEntity.SkipGenerateDescription
 public class WirelessVacuumConveyorInputHatch extends MTEHatchVacuumConveyorInput {
 
@@ -42,6 +44,18 @@ public class WirelessVacuumConveyorInputHatch extends MTEHatchVacuumConveyorInpu
 
     public WirelessVacuumConveyorInputHatch(String aName, int aTier, String[] aDescription, ITexture[][][] aTextures) {
         super(aName, aTier, aDescription, aTextures);
+    }
+
+    @Override
+    public String getLocalNameKey() {
+        if (!hasOwnLocalName()) return super.getLocalNameKey();
+        return "gtnl.hatch.wireless_vacuum_conveyor.input.name";
+    }
+
+    @Override
+    public String getLocalName() {
+        if (!hasOwnLocalName()) return super.getLocalName();
+        return StatCollector.translateToLocal(getLocalNameKey());
     }
 
     @Override
@@ -111,13 +125,13 @@ public class WirelessVacuumConveyorInputHatch extends MTEHatchVacuumConveyorInpu
         Map<CircuitComponent, List<MutablePair<String, Long>>> currentContents = contents == null ? Map.of()
             : contents.getComponents();
         if (!persistedContentsInitialized) {
-            persistedContents = new HashMap<>(currentContents);
+            persistedContents = new Object2ObjectOpenHashMap<>(currentContents);
             persistedContentsInitialized = true;
             return false;
         }
         if (persistedContents.equals(currentContents)) return false;
 
-        persistedContents = new HashMap<>(currentContents);
+        persistedContents = new Object2ObjectOpenHashMap<>(currentContents);
         return true;
     }
 

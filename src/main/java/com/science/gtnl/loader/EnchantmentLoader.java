@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack;
 
 import com.science.gtnl.common.enchantment.MajoBroomEnchantment;
 import com.science.gtnl.common.enchantment.MajoBroomEnchantment.Skill;
-import com.science.gtnl.config.MainConfig;
+import com.science.gtnl.config.ItemConfig;
 
 public class EnchantmentLoader {
 
@@ -20,7 +20,7 @@ public class EnchantmentLoader {
 
     public static void registry() {
         if (landSkills != null) return;
-        MainConfig.Item.Broom config = MainConfig.item.broom;
+        ItemConfig.Broom config = ItemConfig.broom;
         int[] ids = { config.landSkillsEnchantmentId, config.airSkillsEnchantmentId, config.hoveringEnchantmentId,
             config.seabreezeEnchantmentId };
         Set<Integer> assigned = new HashSet<>();
@@ -30,7 +30,7 @@ public class EnchantmentLoader {
                 || Enchantment.enchantmentsList[id] != null) {
                 throw new IllegalStateException(
                     "Broom enchantment ID " + id
-                        + " is unavailable. Set four unique unused IDs in config/GTNotLeisure/GTNotLeisure.cfg, general.item.broom. Client and server IDs must match.");
+                        + " is unavailable. Set four unique unused IDs in config/GTNotLeisure/item.cfg, item.broom. Client and server IDs must match.");
             }
         }
         landSkills = register(config.landSkillsEnchantmentId, Skill.LAND_SKILLS);
@@ -54,6 +54,6 @@ public class EnchantmentLoader {
 
     public static int getFlightDurationTicks(ItemStack stack) {
         int level = getLevel(hovering, stack);
-        return MainConfig.item.broom.flightDurationSeconds * 20 * (4 + level) / 4;
+        return ItemConfig.broom.flightDurationSeconds * 20 * (4 + level) / 4;
     }
 }
