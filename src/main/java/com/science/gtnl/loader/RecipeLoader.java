@@ -132,6 +132,7 @@ import com.science.gtnl.utils.recipes.RecipeUtil;
 
 import bartworks.API.recipe.BartWorksRecipeMaps;
 import cpw.mods.fml.common.Optional;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.registry.VillagerRegistry;
 import goodgenerator.util.CrackRecipeAdder;
 import gregtech.api.enums.ItemList;
@@ -158,6 +159,11 @@ public class RecipeLoader implements IContentLoader {
         if (Mods.NewHorizonsCoreMod.isModLoaded()) ScriptLoader.registry();
         if (ItemConfig.stick.enableStickItem) loadVillageTrade();
         LoadCompleteRecipeScheduler.schedule();
+    }
+
+    @Override
+    public void serverStarting(FMLServerStartingEvent event) {
+        LoadCompleteRecipeScheduler.loadRecipesAfterCompleteInit();
     }
 
     public static void loadCompleteInit() {

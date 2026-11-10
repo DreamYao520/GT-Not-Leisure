@@ -34,7 +34,7 @@ public class LoadCompleteRecipeScheduler {
         loadRecipesAfterCompleteInit();
     }
 
-    private static void loadRecipesAfterCompleteInit() {
+    public static synchronized void loadRecipesAfterCompleteInit() {
         if (!scheduled || loaded) return;
 
         loaded = true;
