@@ -13,6 +13,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import org.jetbrains.annotations.NotNull;
@@ -395,7 +397,9 @@ public class MeteorMiner extends MultiMachineBase<MeteorMiner> implements ISurvi
         xStart = aNBT.getInteger("xStart");
         yStart = aNBT.getInteger("yStart");
         zStart = aNBT.getInteger("zStart");
-        isStartInitialized = aNBT.getBoolean("isStartInitialized");
+        // Queues are transient, so saved scan progress cannot be resumed without rebuilding them.
+        clearMiningQueues();
+        isStartInitialized = false;
         hasFinished = aNBT.getBoolean("hasFinished");
         isWaiting = aNBT.getBoolean("isWaiting");
         if (aNBT.hasKey("enableRender")) enableRender = aNBT.getBoolean("enableRender");
@@ -431,13 +435,13 @@ public class MeteorMiner extends MultiMachineBase<MeteorMiner> implements ISurvi
                 if (renderer != null) renderer.setShouldRender(false);
             }
             setElectricityStats();
-            boolean centerReady = checkIsBlock();
-            if (centerReady) {
-                isWaiting = false;
-                isStartInitialized = false;
-                hasFinished = false;
+            if (!checkIsBlock()) {
+                return SimpleCheckRecipeResult.ofSuccess("meteor_waiting");
             }
-            return SimpleCheckRecipeResult.ofSuccess("meteor_waiting");
+            isWaiting = false;
+            isStartInitialized = false;
+            hasFinished = false;
+            setElectricityStats();
         }
 
         if (!isStartInitialized) {
@@ -501,11 +505,14 @@ public class MeteorMiner extends MultiMachineBase<MeteorMiner> implements ISurvi
 
     public void reset() {
         this.isResetting = false;
-        this.hasFinished = true;
         this.isWaiting = false;
+        clearMiningQueues();
+        this.initializeDrillPos();
+    }
+
+    private void clearMiningQueues() {
         while (!scanQueue.isEmpty()) BLOCK_POS_POOL.releaseInstance(scanQueue.dequeue());
         while (!rowQueue.isEmpty()) BLOCK_POS_POOL.releaseInstances(rowQueue.dequeue());
-        this.initializeDrillPos();
     }
 
     public void startReset() {
@@ -559,15 +566,15 @@ public class MeteorMiner extends MultiMachineBase<MeteorMiner> implements ISurvi
         while (!scanQueue.isEmpty()) BLOCK_POS_POOL.releaseInstance(scanQueue.dequeue());
         World w = getBaseMetaTileEntity().getWorld();
         int x0 = xStart - SCAN_WIDTH / 2;
-        int y0 = yStart;
+        int minY = Math.max(0, yStart);
+        int maxY = Math.min(w.getHeight(), yStart + SCAN_HEIGHT);
         int z0 = zStart - SCAN_DEPTH / 2;
-        for (int dy = 0; dy < SCAN_HEIGHT; dy++) {
+        for (int y = minY; y < maxY; y++) {
             for (int dx = 0; dx < SCAN_WIDTH; dx++) {
                 for (int dz = 0; dz < SCAN_DEPTH; dz++) {
                     int x = x0 + dx;
-                    int y = y0 + dy;
                     int z = z0 + dz;
-                    if (!w.isAirBlock(x, y, z)) {
+                    if (canMineBlock(w, x, y, z)) {
                         scanQueue.enqueue(
                             BLOCK_POS_POOL.getInstance()
                                 .set(x, y, z));
@@ -583,16 +590,16 @@ public class MeteorMiner extends MultiMachineBase<MeteorMiner> implements ISurvi
         while (!rowQueue.isEmpty()) BLOCK_POS_POOL.releaseInstances(rowQueue.dequeue());
         World w = getBaseMetaTileEntity().getWorld();
         int x0 = xStart - SCAN_WIDTH / 2;
-        int y0 = yStart;
+        int minY = Math.max(0, yStart);
+        int maxY = Math.min(w.getHeight(), yStart + SCAN_HEIGHT);
         int z0 = zStart - SCAN_DEPTH / 2;
-        for (int dy = 0; dy < SCAN_HEIGHT; dy++) {
+        for (int y = minY; y < maxY; y++) {
             for (int dx = 0; dx < SCAN_WIDTH; dx++) {
                 ObjectList<BlockPos> row = new ObjectArrayList<>(SCAN_DEPTH);
                 for (int dz = 0; dz < SCAN_DEPTH; dz++) {
                     int x = x0 + dx;
-                    int y = y0 + dy;
                     int z = z0 + dz;
-                    if (!w.isAirBlock(x, y, z)) {
+                    if (canMineBlock(w, x, y, z)) {
                         row.add(
                             BLOCK_POS_POOL.getInstance()
                                 .set(x, y, z));
@@ -609,11 +616,10 @@ public class MeteorMiner extends MultiMachineBase<MeteorMiner> implements ISurvi
 
     public void mineAt(int x, int y, int z) {
         World w = getBaseMetaTileEntity().getWorld();
-        if (w.isAirBlock(x, y, z)) return;
+        if (!canMineBlock(w, x, y, z)) return;
 
         Block target = w.getBlock(x, y, z);
         int meta = w.getBlockMetadata(x, y, z);
-        if (target.getBlockHardness(w, x, y, z) < 0) return;
 
         Collection<ItemStack> drops = target.getDrops(w, x, y, z, meta, 0);
 
@@ -685,18 +691,55 @@ public class MeteorMiner extends MultiMachineBase<MeteorMiner> implements ISurvi
     }
 
     public void initializeDrillPos() {
-        this.isStartInitialized = true;
+        this.isStartInitialized = false;
         this.hasFinished = false;
     }
 
     public boolean checkIsBlock() {
+        setStartCoords();
         World world = getBaseMetaTileEntity().getWorld();
-        for (int y = yStart + 1; y <= 255; y++) {
-            if (!world.isAirBlock(xStart, y, zStart)) {
-                return true;
+        int minX = xStart - SCAN_WIDTH / 2;
+        int minZ = zStart - SCAN_DEPTH / 2;
+        int maxChunkX = (minX + SCAN_WIDTH - 1) >> 4;
+        int maxChunkZ = (minZ + SCAN_DEPTH - 1) >> 4;
+        for (int chunkX = minX >> 4; chunkX <= maxChunkX; chunkX++) {
+            for (int chunkZ = minZ >> 4; chunkZ <= maxChunkZ; chunkZ++) {
+                if (!world.getChunkProvider()
+                    .chunkExists(chunkX, chunkZ)) continue;
+                if (hasMineableBlocks(world, world.getChunkFromChunkCoords(chunkX, chunkZ))) return true;
             }
         }
         return false;
+    }
+
+    private boolean hasMineableBlocks(World world, Chunk chunk) {
+        int minX = Math.max(xStart - SCAN_WIDTH / 2, chunk.xPosition << 4);
+        int maxX = Math.min(xStart - SCAN_WIDTH / 2 + SCAN_WIDTH, (chunk.xPosition + 1) << 4);
+        int minZ = Math.max(zStart - SCAN_DEPTH / 2, chunk.zPosition << 4);
+        int maxZ = Math.min(zStart - SCAN_DEPTH / 2 + SCAN_DEPTH, (chunk.zPosition + 1) << 4);
+        int minY = Math.max(0, yStart);
+        int maxY = Math.min(world.getHeight(), yStart + SCAN_HEIGHT);
+
+        // Skip empty sections without relying on height maps, which can omit transparent blocks.
+        for (ExtendedBlockStorage section : chunk.getBlockStorageArray()) {
+            if (section == null || section.isEmpty()) continue;
+            int fromY = Math.max(minY, section.getYLocation());
+            int toY = Math.min(maxY, section.getYLocation() + 16);
+            for (int y = fromY; y < toY; y++) {
+                for (int x = minX; x < maxX; x++) {
+                    for (int z = minZ; z < maxZ; z++) {
+                        if (canMineBlock(world, x, y, z)) return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    protected boolean canMineBlock(World world, int x, int y, int z) {
+        if (!world.blockExists(x, y, z)) return false;
+        Block block = world.getBlock(x, y, z);
+        return !block.isAir(world, x, y, z) && block.getBlockHardness(world, x, y, z) >= 0;
     }
 
     public void setElectricityStats() {
