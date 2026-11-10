@@ -1,6 +1,9 @@
 package com.science.gtnl.client.wireless;
 
-import static com.science.gtnl.common.wireless.WirelessCardActions.RENAME;
+import static com.science.gtnl.client.wireless.WirelessCardGui.tr;
+import static com.science.gtnl.common.wireless.WirelessCardActions.RENAME_CLUSTER;
+import static com.science.gtnl.common.wireless.WirelessCardActions.RENAME_DEVICE;
+import static com.science.gtnl.common.wireless.WirelessCardActions.RENAME_GROUP;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.NBTTagCompound;
@@ -28,9 +31,47 @@ public class WirelessCardRenameDialog extends Dialog<Void> {
     private final WirelessCardGui owner;
     private final WirelessCardContainer container;
     private final Minecraft mc = Minecraft.getMinecraft();
-    private String target;
-    private long nameRevision;
+    private Target target;
     private boolean finished;
+
+    public record Target(int action, long id, String text, String hint) {
+
+        public static Target device(NBTTagCompound device) {
+            return new Target(
+                RENAME_DEVICE,
+                device.getLong("targetId"),
+                device.getString("name"),
+                tr("device_rename_hint"));
+        }
+
+        public static Target machine(NBTTagCompound row) {
+            return row.hasKey("machineId", 4)
+                ? new Target(RENAME_GROUP, row.getLong("machineId"), row.getString("name"), tr("group_rename_hint"))
+                : null;
+        }
+
+        public static Target cluster(NBTTagCompound row) {
+            return row.getBoolean("titleable")
+                ? new Target(
+                    RENAME_CLUSTER,
+                    row.getLong("targetId"),
+                    row.getString("clusterTitle"),
+                    tr("cluster_rename_hint"))
+                : null;
+        }
+
+        public static Target row(NBTTagCompound row) {
+            return row.getBoolean("group") ? machine(row) : cluster(row);
+        }
+
+        public static Target listed(NBTTagCompound row) {
+            if (row.getBoolean("group")) return null;
+            if (!row.getBoolean("singleDevice")) return cluster(row);
+            NBTTagCompound device = row.getTagList("displayDevices", 10)
+                .getCompoundTagAt(0);
+            return device.getBoolean("renameable") ? device(device) : null;
+        }
+    }
 
     WirelessCardRenameDialog(WirelessCardGui owner) {
         super("wireless_card_rename");
@@ -47,6 +88,12 @@ public class WirelessCardRenameDialog extends Dialog<Void> {
         child(
             name.pos(10, 34)
                 .size(240, 16));
+        child(
+            IKey.dynamic(() -> target == null ? "" : target.hint())
+                .color(owner.palette.hint)
+                .asWidget()
+                .pos(10, 52)
+                .size(240, 10));
         child(dialogButton("gui.cancel", this::closeIfOpen).pos(10, 64));
         child(dialogButton("gui.done", this::submit).pos(134, 64));
     }
@@ -64,11 +111,9 @@ public class WirelessCardRenameDialog extends Dialog<Void> {
 
     @Override
     public void onOpen(ModularScreen screen) {
-        NBTTagCompound data = container.display;
-        target = data.getString("detailTarget");
-        nameRevision = data.getLong("nameRevision");
+        target = owner.renameTarget();
         finished = false;
-        String text = data.getBoolean("multipleNames") ? "" : data.getString("name");
+        String text = target == null ? "" : target.text();
         name.getStringValue()
             .setStringValue(text);
         name.setText(text);
@@ -85,10 +130,8 @@ public class WirelessCardRenameDialog extends Dialog<Void> {
     }
 
     private boolean validateTarget() {
-        NBTTagCompound data = container.display;
-        if (data.getBoolean("detail") && data.getBoolean("renameable")
-            && target.equals(data.getString("detailTarget"))
-            && nameRevision == data.getLong("nameRevision")) return true;
+        if (target != null && owner.clientView()
+            .hasTarget(target.id())) return true;
         closeIfOpen();
         mc.thePlayer.addChatMessage(new ChatComponentTranslation("gtnl.wireless.gui.stale"));
         return false;
@@ -96,7 +139,7 @@ public class WirelessCardRenameDialog extends Dialog<Void> {
 
     private void submit() {
         if (finished || !owner.layoutReady() || !validateTarget()) return;
-        container.sync.request(RENAME, container.display.getLong("detailId"), name.getText(), nameRevision);
+        container.sync.request(target.action(), target.id(), name.getText());
         closeIfOpen();
     }
 

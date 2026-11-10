@@ -3,11 +3,14 @@ package com.science.gtnl.common.wireless;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.science.gtnl.ScienceNotLeisure;
@@ -15,7 +18,9 @@ import com.science.gtnl.api.mixinHelper.IInterfaceNameHatch;
 import com.science.gtnl.common.wireless.WirelessChannelManager.Address;
 
 import appeng.api.implementations.parts.IPartCable;
-import appeng.helpers.IInterfaceHost;
+import appeng.api.networking.IGridHost;
+import appeng.api.parts.IPartHost;
+import gregtech.api.enums.GTValues;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEHatch;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
@@ -120,8 +125,7 @@ public class WirelessMachineGroups {
         }
     }
 
-    record Row(MTEMultiBlockBase machine, TypeKey type, List<IWirelessLinkView> links,
-        WirelessNetworkStatistics statistics) {
+    record Row(MTEMultiBlockBase machine, TypeKey type, List<IWirelessLinkView> links) {
 
         Row(MTEMultiBlockBase machine, List<IWirelessLinkView> links) {
             this(
@@ -133,8 +137,7 @@ public class WirelessMachineGroups {
                         links.get(0)
                             .target()
                             .dimension()),
-                List.copyOf(links),
-                summarize(links));
+                List.copyOf(links));
         }
 
         static Row cluster(IWirelessLinkView link) {
@@ -142,7 +145,7 @@ public class WirelessMachineGroups {
         }
 
         static Row cluster(IWirelessLinkView link, TypeKey type) {
-            return new Row(null, type, List.of(link), link.statistics());
+            return new Row(null, type, List.of(link));
         }
 
         boolean group() {
@@ -155,7 +158,7 @@ public class WirelessMachineGroups {
         }
 
         Address target() {
-            if (machine == null) return links.get(0)
+            if (!group()) return links.get(0)
                 .target();
             var base = machine.getBaseMetaTileEntity();
             return new Address(
@@ -221,6 +224,125 @@ public class WirelessMachineGroups {
         return rows;
     }
 
+    private record NameScope(WirelessFrequencyWorldSavedData registry, UUID network) {}
+
+    private static NameScope nameScope(WirelessFrequency frequency) {
+        var registry = WirelessFrequencyWorldSavedData.get();
+        if (frequency == null || registry == null) return null;
+        WirelessFrequency network = WirelessFrequencies.upgrade(frequency);
+        return network.isLegacy() ? null : new NameScope(registry, network.id());
+    }
+
+    static boolean canName(WirelessFrequency frequency) {
+        return nameScope(frequency) != null;
+    }
+
+    static String groupName(WirelessFrequency frequency, MTEMultiBlockBase machine) {
+        NameScope scope = nameScope(frequency);
+        IGregTechTileEntity base = machine.getBaseMetaTileEntity();
+        Address position = position(base);
+        if (scope == null || position == null) return "";
+        var stored = scope.registry()
+            .groupName(scope.network(), position);
+        return stored != null && stored.meta() == base.getMetaTileID() ? stored.name() : "";
+    }
+
+    static boolean setGroupName(WirelessFrequency frequency, MTEMultiBlockBase machine, String name) {
+        NameScope scope = nameScope(frequency);
+        IGregTechTileEntity base = machine.getBaseMetaTileEntity();
+        Address position = position(base);
+        if (scope == null || position == null || base.isDead() || base.getMetaTileEntity() != machine) return false;
+        scope.registry()
+            .setGroupName(scope.network(), position, base.getMetaTileID(), WirelessLinkPersistence.cleanName(name));
+        return true;
+    }
+
+    static String clusterTitle(WirelessFrequency frequency, IWirelessLinkView link) {
+        NameScope scope = nameScope(frequency);
+        if (scope == null || !scope.registry()
+            .hasClusterTitles(scope.network())) return "";
+        var keys = WirelessClusterManager.titleKeys(frequency, link.cluster());
+        String title = scope.registry()
+            .clusterTitle(scope.network(), keys);
+        if (title.isEmpty()) title = scope.registry()
+            .clusterTitle(scope.network(), WirelessClusterManager.memberAddresses(link.cluster()));
+        // Re-key onto the current anchor and entrances so the title survives either one being replaced later.
+        if (!title.isEmpty()) scope.registry()
+            .keepClusterTitle(scope.network(), keys, title);
+        return title;
+    }
+
+    static boolean setClusterTitle(WirelessFrequency frequency, IWirelessLinkView link, String title) {
+        NameScope scope = nameScope(frequency);
+        if (scope == null) return false;
+        scope.registry()
+            .setClusterTitle(
+                scope.network(),
+                WirelessClusterManager.memberAddresses(link.cluster()),
+                WirelessClusterManager.titleKeys(frequency, link.cluster()),
+                WirelessLinkPersistence.cleanName(title));
+        return true;
+    }
+
+    static void forgetRemovedGroupNames(WirelessFrequency frequency) {
+        NameScope scope = nameScope(frequency);
+        if (scope == null) return;
+        scope.registry()
+            .forgetGroupNames(
+                scope.network(),
+                (position, meta) -> !WirelessConstructionSites.contains(position) && controllerRemoved(position, meta));
+        scope.registry()
+            .forgetClusterTitles(
+                scope.network(),
+                position -> !WirelessConstructionSites.contains(position) && deviceRemoved(position));
+    }
+
+    public static void followMove(Address source, Address target) {
+        var registry = WirelessFrequencyWorldSavedData.get();
+        if (registry == null) return;
+        registry.moveClusterTitles(source, target);
+        if (target.tile() instanceof IGregTechTileEntity base && base.getMetaTileEntity() instanceof MTEMultiBlockBase)
+            registry.moveGroupNames(source, target, base.getMetaTileID());
+    }
+
+    private static boolean deviceRemoved(Address position) {
+        World world = DimensionManager.getWorld(position.dimension());
+        if (world == null || !world.blockExists(position.x(), position.y(), position.z())) return false;
+        TileEntity tile = world.getTileEntity(position.x(), position.y(), position.z());
+        if (tile != null && tile.isInvalid()) return false;
+        if (tile instanceof IPartHost host) return host.getPart(position.side()) == null;
+        return !(tile instanceof IGridHost);
+    }
+
+    private static boolean controllerRemoved(Address position, int meta) {
+        World world = DimensionManager.getWorld(position.dimension());
+        if (world == null || !world.blockExists(position.x(), position.y(), position.z())) return false;
+        TileEntity tile = world.getTileEntity(position.x(), position.y(), position.z());
+        // An invalid tile may be rebuilding; only a confirmed replacement or removal counts as absent.
+        if (tile != null && tile.isInvalid()) return false;
+        return !(tile instanceof IGregTechTileEntity base) || base.getMetaTileID() != meta;
+    }
+
+    private static Address position(IGregTechTileEntity base) {
+        World world = base == null ? null : base.getWorld();
+        if (world == null) return null;
+        return new Address(
+            world.provider.dimensionId,
+            base.getXCoord(),
+            base.getYCoord(),
+            base.getZCoord(),
+            ForgeDirection.UNKNOWN);
+    }
+
+    static int[] energyHatches(MTEMultiBlockBase machine) {
+        int[] counts = new int[GTValues.VN.length];
+        Set<MTEHatch> seen = new ReferenceOpenHashSet<>();
+        for (MTEHatch hatch : machine.getExoticAndNormalEnergyHatchList()) {
+            if (seen.add(hatch) && hatch.mTier >= 0 && hatch.mTier < counts.length) counts[hatch.mTier]++;
+        }
+        return counts;
+    }
+
     static Classification classify(IWirelessLinkView link, Reference2BooleanMap<MTEMultiBlockBase> validControllers,
         WirelessInterfaceView interfaces) {
         Set<MTEMultiBlockBase> owners = null;
@@ -233,7 +355,8 @@ public class WirelessMachineGroups {
             Object host = node.getMachine();
             if (host instanceof IPartCable) continue;
             Object machine = host instanceof IGregTechTileEntity base ? base.getMetaTileEntity() : host;
-            machineDevices &= machine instanceof MTEHatch || host instanceof IInterfaceHost;
+            boolean attached = WirelessInterfaceView.attached(host);
+            machineDevices &= machine instanceof MTEHatch || attached;
             if (pureDevices) {
                 TypeKey next = TypeKey.of(
                     TypeKind.DEVICE,
@@ -248,8 +371,8 @@ public class WirelessMachineGroups {
             if (!(machine instanceof MTEHatch)) pureSharedHatches = false;
             List<MTEHatch> hatches;
             if (machine instanceof MTEHatch hatch) hatches = List.of(hatch);
-            else if (host instanceof IInterfaceHost iface) {
-                hatches = interfaces.hatches(iface);
+            else if (attached) {
+                hatches = interfaces.hatches(host);
                 if (hatches == null) return Classification.UNGROUPED;
             } else continue;
             for (MTEHatch target : hatches) {
@@ -297,20 +420,6 @@ public class WirelessMachineGroups {
                 .blockExists(base.getXCoord(), base.getYCoord(), base.getZCoord())
             && base.getWorld()
                 .getTileEntity(base.getXCoord(), base.getYCoord(), base.getZCoord()) == base;
-    }
-
-    static WirelessNetworkStatistics summarize(List<IWirelessLinkView> links) {
-        int nodes = 0, devices = 0, online = 0, missing = 0;
-        boolean stable = true;
-        for (IWirelessLinkView link : links) {
-            var stats = link.statistics();
-            nodes += stats.nodes();
-            devices += stats.devices();
-            online += stats.online();
-            missing += stats.missing();
-            stable &= stats.stable();
-        }
-        return new WirelessNetworkStatistics(nodes, devices, online, missing, stable);
     }
 
     static String coordinates(Address address) {

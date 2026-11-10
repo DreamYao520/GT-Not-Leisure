@@ -13,12 +13,10 @@ import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.science.gtnl.common.wireless.IWirelessLinkView.ClusterView;
-import com.science.gtnl.common.wireless.IWirelessLinkView.EntranceView;
 import com.science.gtnl.common.wireless.PhysicalClusterTracker.Cluster;
 import com.science.gtnl.common.wireless.VerifiedEntranceRecovery.Candidate;
 import com.science.gtnl.common.wireless.VerifiedEntranceRecovery.Result;
@@ -32,6 +30,8 @@ import appeng.api.networking.IGridNode;
 import appeng.api.networking.pathing.ControllerState;
 import appeng.api.networking.pathing.IPathingGrid;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -433,31 +433,51 @@ public class WirelessClusterManager {
         }
     }
 
-    static List<IWirelessLinkView> entranceLinks(WirelessFrequency source, ClusterView cluster) {
-        List<IWirelessLinkView> result = new ObjectArrayList<>();
-        for (Entrance entrance : WirelessChannelManager.entrances()) {
+    public record EntranceUsage(Address target, OptionalInt usedChannels) {}
+
+    static List<EntranceUsage> entranceUsage(WirelessFrequency source, ClusterView view) {
+        List<EntranceUsage> result = new ObjectArrayList<>();
+        var cluster = TRACKER.clusterOf(view.node());
+        if (cluster == null) return result;
+        for (Entrance entrance : entranceIndex.forCluster(cluster)) {
             if (same(entrance.frequency(), source) && entrance.isLive()
-                && cluster.members()
+                && view.members()
                     .contains(entrance.targetNode())) {
                 boolean stable = WirelessNetworkStatistics.channelsStable(entrance.sourceNode())
                     && WirelessNetworkStatistics.channelsStable(entrance.targetNode());
                 result.add(
-                    new EntranceView(
-                        cluster,
+                    new EntranceUsage(
                         entrance.target(),
-                        entrance.targetNode(),
                         stable ? OptionalInt.of(
                             entrance.connection()
                                 .getUsedChannels())
                             : OptionalInt.empty()));
             }
         }
-        result.sort(
-            Comparator.comparing(
-                view -> view.target()
-                    .toString()));
-        // Keep the physical cluster actionable when pausing removes all runtime entrances.
-        return result.isEmpty() ? List.of(cluster) : result;
+        result.sort(Comparator.comparing(EntranceUsage::target, Address.POSITION_ORDER));
+        return result;
+    }
+
+    static Set<Address> titleKeys(WirelessFrequency source, ClusterView view) {
+        Set<Address> keys = new ObjectLinkedOpenHashSet<>();
+        keys.add(view.target());
+        var cluster = TRACKER.clusterOf(view.node());
+        if (cluster != null) for (Entrance entrance : entranceIndex.forCluster(cluster)) {
+            if (!same(entrance.frequency(), source) || !view.members()
+                .contains(entrance.targetNode())) continue;
+            Address address = TOPOLOGY.entranceAddress(entrance.targetNode());
+            if (address != null) keys.add(address);
+        }
+        return keys;
+    }
+
+    static Set<Address> memberAddresses(ClusterView view) {
+        Set<Address> addresses = new ObjectOpenHashSet<>();
+        for (IGridNode node : view.members()) {
+            Address address = TOPOLOGY.entranceAddress(node);
+            if (address != null) addresses.add(address);
+        }
+        return addresses;
     }
 
     public static boolean isLinked(WirelessFrequency source, IGridNode target) {
@@ -474,12 +494,16 @@ public class WirelessClusterManager {
             .equals(view.members());
     }
 
-    public static boolean rename(WirelessFrequency source, IWirelessLinkView view, String name,
+    static boolean renameDevice(WirelessFrequency source, IWirelessLinkView view, IGridNode device, String name,
         Predicate<IGridNode> canRename) {
         try (var ignored = WirelessLinkData.readBatch()) {
-            if (!isCurrentLink(source, view) || !WirelessLinkPersistence.names(view.members())
-                .equals(view.deviceNames())) throw new IllegalStateException("The displayed cluster changed");
-            return WirelessLinkPersistence.rename(view.deviceNames(), name, TOPOLOGY, canRename);
+            String shown = view.deviceNames()
+                .get(device);
+            if (shown == null || !isCurrentLink(source, view))
+                throw new IllegalStateException("The displayed device changed");
+            if (!canRename.test(device)) return false;
+            WirelessLinkPersistence.renameDevice(device, shown, name, TOPOLOGY);
+            return true;
         }
     }
 
@@ -491,24 +515,24 @@ public class WirelessClusterManager {
             .contains(canonical(source)) ? cluster : null;
     }
 
-    static Address deviceAddress(IGridNode node) {
+    public static Address deviceAddress(IGridNode node) {
         return TOPOLOGY.nodeAddress(node);
     }
 
     public static List<Address> highlight(IWirelessLinkView view) {
-        return (view instanceof EntranceView ? Stream.of(view.target())
-            : view.members()
-                .stream()
-                .map(TOPOLOGY::nodeAddress)).filter(Objects::nonNull)
-                    .map(
-                        address -> new Address(
-                            address.dimension(),
-                            address.x(),
-                            address.y(),
-                            address.z(),
-                            ForgeDirection.UNKNOWN))
-                    .distinct()
-                    .toList();
+        return view.members()
+            .stream()
+            .map(TOPOLOGY::nodeAddress)
+            .filter(Objects::nonNull)
+            .map(
+                address -> new Address(
+                    address.dimension(),
+                    address.x(),
+                    address.y(),
+                    address.z(),
+                    ForgeDirection.UNKNOWN))
+            .distinct()
+            .toList();
     }
 
     static PreparedLink prepareLink(WirelessFrequency source, Address target) {

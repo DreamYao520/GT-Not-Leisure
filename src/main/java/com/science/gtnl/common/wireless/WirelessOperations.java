@@ -151,10 +151,25 @@ public class WirelessOperations {
         }
     }
 
-    static boolean rename(EntityPlayer player, WirelessFrequency source, IWirelessLinkView view, String name) {
+    static boolean renameDevice(EntityPlayer player, WirelessFrequency source, WirelessCardSnapshot.Device device,
+        String name) {
+        if (!canBuild(device.node(), player) || !canBuild(WirelessFrequencies.controllerNode(source), player))
+            throw new Denied();
+        return WirelessClusterManager
+            .renameDevice(source, device.link(), device.node(), name, node -> canBuild(node, player));
+    }
+
+    static boolean renameCluster(EntityPlayer player, WirelessFrequency source, IWirelessLinkView view, String title) {
         if (!canBuild(view.node(), player) || !canBuild(WirelessFrequencies.controllerNode(source), player))
             throw new Denied();
-        return WirelessClusterManager.rename(source, view, name, node -> canBuild(node, player));
+        return WirelessMachineGroups.setClusterTitle(source, view, title);
+    }
+
+    static boolean renameGroup(EntityPlayer player, WirelessFrequency source, WirelessCardSnapshot.Machine group,
+        String name) {
+        if (!canBuild(WirelessFrequencies.controllerNode(source), player)) throw new Denied();
+        for (IWirelessLinkView link : group.links()) if (!canBuild(link.node(), player)) throw new Denied();
+        return WirelessMachineGroups.setGroupName(source, group.machine(), name);
     }
 
     static void setPaused(EntityPlayer player, WirelessFrequency source, IWirelessLinkView view) {
