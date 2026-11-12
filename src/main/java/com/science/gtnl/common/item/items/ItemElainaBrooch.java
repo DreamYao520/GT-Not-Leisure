@@ -102,9 +102,9 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
         List<String> attributes = new ArrayList<>();
         if (config.overrideArmor)
             attributes.add(StatCollector.translateToLocalFormatted("item.gtnl.elaina_brooch.armor", config.armorValue));
-        if (config.overrideMaxHealth) attributes.add(
+        if (config.maxHealthBonus > 0.0D) attributes.add(
             StatCollector
-                .translateToLocalFormatted("item.gtnl.elaina_brooch.max_health", formatValue(config.maxHealth)));
+                .translateToLocalFormatted("item.gtnl.elaina_brooch.max_health", formatValue(config.maxHealthBonus)));
         if (config.restoreHealth) attributes.add(
             StatCollector
                 .translateToLocalFormatted("item.gtnl.elaina_brooch.restore_health", config.restoreIntervalSeconds));
@@ -189,7 +189,7 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
         else data.removeTag(INVULNERABLE_TICKS_TAG);
 
         boolean active = isActive(player);
-        updateMaxHealth(player, active && config.overrideMaxHealth);
+        updateMaxHealthBonus(player, active);
         updateFlight(player, data, active && config.enableCreativeFlight);
         if (!active) {
             data.removeTag(INVULNERABLE_TICKS_TAG);
@@ -247,25 +247,22 @@ public class ItemElainaBrooch extends BaubleItem implements IBaubleExpanded {
         player.addPotionEffect(new PotionEffect(potion.id, duration, amplifier, true));
     }
 
-    private static void updateMaxHealth(EntityPlayer player, boolean equipped) {
+    private static void updateMaxHealthBonus(EntityPlayer player, boolean enabled) {
         IAttributeInstance attribute = player.getEntityAttribute(SharedMonsterAttributes.maxHealth);
         if (attribute == null) return;
         AttributeModifier current = attribute.getModifier(MAX_HEALTH_MODIFIER_ID);
-        if (!equipped) {
+        double bonus = enabled ? ItemConfig.elaina_brooch.maxHealthBonus : 0.0D;
+        if (bonus <= 0.0D) {
             if (current == null) return;
             attribute.removeModifier(current);
-            if (player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth());
-            return;
+        } else {
+            if (current != null && current.getAmount() == bonus && current.getOperation() == 0 && !current.isSaved())
+                return;
+            if (current != null) attribute.removeModifier(current);
+            attribute.applyModifier(
+                new AttributeModifier(MAX_HEALTH_MODIFIER_ID, "Elaina brooch maximum health", bonus, 0)
+                    .setSaved(false));
         }
-        double maxHealth = ItemConfig.elaina_brooch.maxHealth;
-        if (Math.abs(attribute.getAttributeValue() - maxHealth) < 0.001D) return;
-        if (current != null) attribute.removeModifier(current);
-        double baseValue = attribute.getAttributeValue();
-        int operation = baseValue > 0.0D ? 2 : 0;
-        double amount = operation == 2 ? maxHealth / baseValue - 1.0D : maxHealth;
-        attribute.applyModifier(
-            new AttributeModifier(MAX_HEALTH_MODIFIER_ID, "Elaina brooch maximum health", amount, operation)
-                .setSaved(false));
         if (player.getHealth() > player.getMaxHealth()) player.setHealth(player.getMaxHealth());
     }
 

@@ -113,14 +113,10 @@ public class ItemConfig {
         @RangeInt(min = 0, max = 100)
         public int armorValue = 12;
 
-        @Comment("Override maximum health while the brooch is worn")
-        @DefaultBoolean(true)
-        public boolean overrideMaxHealth = true;
-
-        @Comment("Fixed maximum health in health points, not hearts")
-        @DefaultDouble(40.0D)
-        @RangeDouble(min = 1.0D, max = 1000000.0D)
-        public double maxHealth = 40.0D;
+        @Comment("Additional maximum health in health points, not hearts; 0 disables the bonus")
+        @DefaultDouble(20.0D)
+        @RangeDouble(min = 0.0D, max = 1000000.0D)
+        public double maxHealthBonus = 20.0D;
 
         @Comment("Seconds between health, food and cleanse updates")
         @DefaultInt(1)
