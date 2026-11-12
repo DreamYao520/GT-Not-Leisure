@@ -592,6 +592,34 @@ tc.research_name.gtnl.timeStopPocketWatch=岁月静滞怀表
 tc.research_text.gtnl.timeStopPocketWatch=掌握时间的秘密
 tc.research_text.gtnl.timeStopPocketWatch.0=在古老的时间学派手稿中，有关「岁月静滞怀表」的记载寥寥无几。据说，它最早是由一位厌倦战争与喧嚣的炼金术士打造，他渴望在流逝中捕捉永恒。怀表的构造并不复杂，真正的难点在于为其注入“停滞”的本质。传闻整个仪式必须在月相最黯淡之夜进行，四周环绕以安静的时空晶体与沉默的金属，施术者的每一缕意念都必须精确控制，否则整个注魔仪式会使时间本身反噬施法者。若仪式成功，便可暂时将世界之流冻结于此刻，但切记：时间从不会真正被掌控，它只是在等待反扑的时机。
 
+tc.research_name.gtnl.essentiaSmeltery=电动炼金炉
+tc.research_text.gtnl.essentiaSmeltery=以电生火，收获源质
+tc.research_text.gtnl.essentiaSmeltery.0=掌握源质蒸馏之后，你开始考虑如何让炼金炉持续工作。将电力转化为稳定的热量，似乎是个值得尝试的办法。<BR><BR>以机械外壳为核心，通过注魔将炼金炉、电动泵和电路结合，你制成了§l电动炼金炉§r。三个版本分别采用LV、MV和HV组件，提炼出的源质可以直接从设置的输出面送入相邻的容器或管道。<BR><BR>标准超频前的基础功耗：30 EU/t<BR>每点源质的处理时间：32 tick<BR>LV缓存容量：64点<BR>MV缓存容量：128点<BR>HV缓存容量：256点<BR><BR>不含任何要素的物品不会被消耗。缓存为空时，可以处理一个源质总量超过缓存容量的物品。
+
+tc.research_name.gtnl.multiEssentiaTube=复合源质管道
+tc.research_text.gtnl.multiEssentiaTube=少些管道，多些秩序
+tc.research_text.gtnl.multiEssentiaTube.0=研究源质缓存器时，你发现不同的源质可以暂存在同一处，再由吸力决定哪一种流向接收端。将这一原理用于管道，或许能让日渐庞大的管网变得简洁。<BR><BR>以魔法机械方块为核心，将四个源质缓存器和一个MV电动泵注魔，便能得到四根§l复合源质管道§r。它们能够暂存多种源质，接收端的吸力会选择所需的那一种。<BR><BR>所有要素共用的缓存容量：64点<BR>每tick最多传输源质：16点
+
+tc.research_name.gtnl.multiEssentiaJar=复合源质罐
+tc.research_text.gtnl.multiEssentiaJar=瓶瓶罐罐，可以少一些了
+tc.research_text.gtnl.multiEssentiaJar.0=复合源质管道的成功让你重新审视那些占满房间的源质罐子。既然多种源质能够共用管道，罐子里也应该有容纳它们的办法。<BR><BR>借助MV电路、魔法机械方块和复合源质管道，你通过注魔改造了源质罐子，制成§l复合源质罐§r。它可以从顶部吸取源质，并在同一个罐子中储存多种要素。<BR><BR>所有要素共用的储存容量：4096点<BR>每tick最多接收源质：16点
+
+tc.research_name.gtnl.multiEssentiaInputHatch=复合源质输入仓
+tc.research_text.gtnl.multiEssentiaInputHatch=源质也该按需供应
+tc.research_text.gtnl.multiEssentiaInputHatch.0=源质的储存和运输已有了着落，接下来该让机器学会索取它们。配方需要什么，就从管网中吸取什么，这正是你想要的供料方式。<BR><BR>通过注魔，将源质仓与复合源质罐、管道和HV组件结合，便能制成§l复合源质输入仓§r。它能够缓存多种要素，并根据小型注魔矩阵或工业坩埚的需求吸取相应源质。<BR><BR>所有要素共用的缓存容量：4096点<BR>每tick最多吸取源质：16点<BR>吸力：128
+
+tc.research_name.gtnl.smallArcaneAssembler=小型奥术组装机
+tc.research_text.gtnl.smallArcaneAssembler=让机械臂接过法杖
+tc.research_text.gtnl.smallArcaneAssembler.0=奥术工作台已经能够借助法杖完成合成，剩下的重复劳动似乎很适合交给机械臂。用HV组件和魔法机械方块为工作台注魔后，你终于让这个想法成为了现实。<BR><BR>§l小型奥术组装机§r需要在控制器槽中放置一柄法杖，才能执行奥术合成。机器使用所有者已完成的研究，因此你的知识仍然是它工作的基础。<BR><BR>电力驱动机械，法杖提供Vis。并行加工时，Vis消耗按实际合成次数计算；法杖储量不足时，机器会等待补充后再开始加工。
+
+tc.research_name.gtnl.smallInfusionMatrix=小型注魔矩阵
+tc.research_text.gtnl.smallInfusionMatrix=不必再守着符文矩阵
+tc.research_text.gtnl.smallInfusionMatrix.0=奥术合成的自动化让你看到了更多可能。注魔时反复摆放材料、准备源质的工作，也可以交给一套专门的魔导设备。<BR><BR>以符文矩阵为核心，通过注魔结合HV组件、魔法机械方块和复合源质管道，你制成了§l小型注魔矩阵§r。它能够执行所有者已完成研究的注魔配方，并从连接的源质供应设备取得所需源质。<BR><BR>为机器备齐材料和源质，它便能持续完成注魔。每次合成都需要原配方的源质，并行加工时按实际合成次数消耗。
+
+tc.research_name.gtnl.industrialCrucible=工业坩埚
+tc.research_text.gtnl.industrialCrucible=炼金术的流水作业
+tc.research_text.gtnl.industrialCrucible.0=炼金术已经能制造许多难以获得的物品，但逐次投放催化剂、准备源质的过程仍然耗费精力。你决定为这门古老的技艺添上一套现代的生产设备。<BR><BR>以电力高炉为核心，用坩埚、魔法机械方块和HV组件注魔，便能制成§l工业坩埚§r。它会按所有者已完成的研究执行坩埚配方，并从连接的源质供应设备取得所需源质。<BR><BR>遇到使用相同催化剂的配方时，可以用配置电路选择目标配方。每次合成都消耗原配方的催化剂和源质，并行加工时按实际合成次数计算。
+
 tc.research_name.gtnl.largeEssentiaGenerator=奥术世界的内燃引擎
 tc.research_text.gtnl.largeEssentiaGenerator=它会造成咒波污染吗?
 tc.research_text.gtnl.largeEssentiaGenerator.0=你发现源质内蕴含的能量超乎你的想象.有没有用这些源质发电的方法呢?<BR><BR>LEG(大型源质发电机)可以根据动力仓自动调整其输出电压. 扩散单元决定了LEG可接受的最高仓室等级.
