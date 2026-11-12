@@ -78,6 +78,8 @@ public class NetWorkHandler {
         registerServerbound(PortalGunFavoritePacket.class);
         registerClientbound(CelestweaveFireballPacket.class);
         registerClientbound(CelestweaveConcealPacket.class);
+        registerClientbound(RemoteDeviceOpenPacket.class);
+        registerServerbound(RemoteDeviceRequestPacket.class);
         registerServerbound(MajoBroomActionPacket.class);
     }
 

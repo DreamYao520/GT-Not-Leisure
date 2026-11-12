@@ -670,10 +670,10 @@ public class GrandAssemblyLine extends GTMMultiMachineBase<GrandAssemblyLine> im
         Object2LongOpenHashMap<ItemId> availableMap, Object2LongOpenHashMap<ItemId> requiredMap) {
         if (ingredient == null) return 0;
         ItemId ingredientKey = getIngredientKey(ingredient);
-        long available = availableMap.getOrDefault(ingredientKey, 0L);
         if (ingredient.stackSize <= 0) {
-            return available > 0 ? Integer.MAX_VALUE : 0;
+            return availableMap.containsKey(ingredientKey) ? Integer.MAX_VALUE : 0;
         }
+        long available = availableMap.getOrDefault(ingredientKey, 0L);
         long requiredAfterAdding = requiredMap.getOrDefault(ingredientKey, 0L) + ingredient.stackSize;
         return requiredAfterAdding <= 0 ? 0 : available / requiredAfterAdding;
     }

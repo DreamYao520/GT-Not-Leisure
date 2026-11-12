@@ -26,6 +26,7 @@ import gregtech.api.interfaces.IRecipeMap;
 import gregtech.api.logic.ProcessingLogic;
 import gregtech.api.objects.ItemData;
 import gregtech.api.recipe.RecipeMetadataKey;
+import gregtech.api.recipe.metadata.SimpleRecipeMetadataKey;
 import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
@@ -52,6 +53,8 @@ public class TCRecipeTools {
         .getModItem(Mods.EtFuturumRequiem.ID, "blast_furnace", 1);
     public static final Set<ItemId> UNCONSUMED_ITEMS = new ObjectOpenHashSet<>();
     public static final Set<ItemId> PRIMORDIAL_PEARL_RETURN_EXCLUSIONS = new ObjectOpenHashSet<>();
+    public static final RecipeMetadataKey<Boolean> INFUSION_RETURNS_INCLUDED = SimpleRecipeMetadataKey
+        .create(Boolean.class, "gtnl_infusion_returns_included");
 
     // Recipe duration is derived from the total aspect amount.
     private static final int ARCANE_DURATION_BASE_TICKS = 20;
@@ -185,6 +188,7 @@ public class TCRecipeTools {
 
     public static ItemStack[] appendPrimordialPearlReturns(ItemStack[] outputs, GTRecipe recipe, int parallels) {
         if (outputs == null || recipe == null || recipe.mOutputs == null || parallels <= 0) return outputs;
+        if (recipe.getMetadataOrDefault(INFUSION_RETURNS_INCLUDED, false)) return outputs;
 
         ItemId primordialPearl = ItemId.create(new ItemStack(itemEldritchObject, 1, 3));
         long pearlsPerCraft = 0;
@@ -231,17 +235,16 @@ public class TCRecipeTools {
 
     // Derive processing duration in ticks from the aspect total.
     public static int computeAspectDuration(AspectList aspects, int ticksPerAspect) {
-        if (aspects == null) {
-            return ARCANE_DURATION_BASE_TICKS;
-        }
+        if (ticksPerAspect <= 0) throw new IllegalArgumentException("Aspect duration must be positive");
+        if (aspects == null) return ARCANE_DURATION_BASE_TICKS;
 
-        int totalAmount = 0;
+        long duration = ARCANE_DURATION_BASE_TICKS;
         for (Aspect aspect : aspects.getAspects()) {
-            if (aspect != null) {
-                totalAmount += aspects.getAmount(aspect);
-            }
+            if (aspect == null) continue;
+            duration += (long) Math.max(0, aspects.getAmount(aspect)) * ticksPerAspect;
+            if (duration >= Integer.MAX_VALUE) return Integer.MAX_VALUE;
         }
-        return ARCANE_DURATION_BASE_TICKS + totalAmount * ticksPerAspect;
+        return (int) duration;
     }
 
     // Allow callers to provide duration in ticks and voltage in EU/t.
@@ -465,7 +468,7 @@ public class TCRecipeTools {
     }
 
     public static int computeAspectDurationFromCopy(AspectList aspects, int ticksPerAspect) {
-        return ARCANE_DURATION_BASE_TICKS + aspects.visSize() * ticksPerAspect;
+        return computeAspectDuration(aspects, ticksPerAspect);
     }
 
     public static class ShapedArcaneCraftingRecipe {

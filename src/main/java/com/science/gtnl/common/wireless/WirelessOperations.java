@@ -151,10 +151,25 @@ public class WirelessOperations {
         }
     }
 
-    static boolean rename(EntityPlayer player, WirelessFrequency source, IWirelessLinkView view, String name) {
+    static boolean renameDevice(EntityPlayer player, WirelessFrequency source, WirelessCardSnapshot.Device device,
+        String name) {
+        if (!canBuild(device.node(), player) || !canBuild(WirelessFrequencies.controllerNode(source), player))
+            throw new Denied();
+        return WirelessClusterManager
+            .renameDevice(source, device.link(), device.node(), name, node -> canBuild(node, player));
+    }
+
+    static boolean renameCluster(EntityPlayer player, WirelessFrequency source, IWirelessLinkView view, String title) {
         if (!canBuild(view.node(), player) || !canBuild(WirelessFrequencies.controllerNode(source), player))
             throw new Denied();
-        return WirelessClusterManager.rename(source, view, name, node -> canBuild(node, player));
+        return WirelessMachineGroups.setClusterTitle(source, view, title);
+    }
+
+    static boolean renameGroup(EntityPlayer player, WirelessFrequency source, WirelessCardSnapshot.Machine group,
+        String name) {
+        if (!canBuild(WirelessFrequencies.controllerNode(source), player)) throw new Denied();
+        for (IWirelessLinkView link : group.links()) if (!canBuild(link.node(), player)) throw new Denied();
+        return WirelessMachineGroups.setGroupName(source, group.machine(), name);
     }
 
     static void setPaused(EntityPlayer player, WirelessFrequency source, IWirelessLinkView view) {
@@ -172,6 +187,17 @@ public class WirelessOperations {
         if (controller == null) return Result.UNAVAILABLE;
         if (!canBuild(controller, player) || !canBuild(view.node(), player)) return Result.DENIED;
         return WirelessCardTeleport.teleport(player, view.target()) ? Result.APPLIED : Result.UNCHANGED;
+    }
+
+    static Result teleport(EntityPlayerMP player, WirelessFrequency source, IWirelessLinkView view, IGridNode device) {
+        if (!WirelessClusterManager.isCurrentLink(source, view) || !view.members()
+            .contains(device)) return Result.STALE;
+        IGridNode controller = WirelessFrequencies.controllerNode(source);
+        if (controller == null) return Result.UNAVAILABLE;
+        if (!canBuild(controller, player) || !canBuild(device, player)) return Result.DENIED;
+        Address address = WirelessClusterManager.deviceAddress(device);
+        if (address == null) return Result.STALE;
+        return WirelessCardTeleport.teleport(player, address) ? Result.APPLIED : Result.UNCHANGED;
     }
 
     static void clear() {

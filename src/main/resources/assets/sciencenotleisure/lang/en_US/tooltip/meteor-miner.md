@@ -3,8 +3,8 @@ The laser will mine in a radius of up to 50 blocks in the XZ axis from the cente
 All involved chunks must be force-loaded.
 The laser will automatically set its radius based on the meteor.
 If no meteor is found, it will wait for a meteor to spawn.
-Also considers the block directly above the meteor center.
-The reset button can restart the machine without changing the radius.
+Detection covers the entire mining area; no block is required directly above the center. Unbreakable blocks do not trigger mining.
+The reset button clears pending targets and scans the mining area again.
 {red:{bold:Tier I}}
 Mines one block per cycle.
 Default Fortune level is 0, can be increased by placing special picks in the input bus:
