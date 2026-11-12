@@ -1,7 +1,10 @@
 package com.science.gtnl.common.effect.effects;
 
+import static com.science.gtnl.ScienceNotLeisure.LOG;
+
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -12,19 +15,22 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
-import net.minecraft.world.ChunkPosition;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 
 import com.gtnllib.mod.ModList;
 import com.reavaritia.common.entity.EntityChronarchClock;
-import com.science.gtnl.api.ITileEntityTickAcceleration;
 import com.science.gtnl.common.effect.EffectBase;
+import com.science.gtnl.common.tickrate.TickAccelerationHooks;
 import com.science.gtnl.config.EffectConfig;
 import com.science.gtnl.config.ReAvaritiaConfig;
+import com.xir.NHUtilities.common.api.interfaces.ITileEntityTickAcceleration;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 
 public class MissBroomBlessingEffect extends EffectBase {
 
@@ -58,42 +64,78 @@ public class MissBroomBlessingEffect extends EffectBase {
         if (frame.tick != tick) {
             frame.tick = tick;
             frame.positions.clear();
+            frame.elapsedNanos = 0L;
         }
+        if (frame.elapsedNanos >= MAX_ACCELERATION_NANOS) return;
 
+        long started = System.nanoTime();
+        long deadline = started + MAX_ACCELERATION_NANOS - frame.elapsedNanos;
+        try {
+            List<TileEntity> candidates = nearbyTiles(world, player, config.accelerationRadius);
+            if (candidates.isEmpty()) return;
+            int start = frame.cursor % candidates.size();
+            boolean nhUtilitiesLoaded = ModList.NHUtilities.isModLoaded();
+            for (int offset = 0; offset < candidates.size(); offset++) {
+                int index = (start + offset) % candidates.size();
+                if (System.nanoTime() > deadline) return;
+                frame.cursor = (index + 1) % candidates.size();
+                TileEntity tile = candidates.get(index);
+                if (tile.isInvalid() || !tile.canUpdate() || isBlacklisted(tile)) continue;
+                if (!world.blockExists(tile.xCoord, tile.yCoord, tile.zCoord)
+                    || world.getTileEntity(tile.xCoord, tile.yCoord, tile.zCoord) != tile) continue;
+                long position = ((long) tile.xCoord & 0x3FFFFFFL) << 38 | ((long) tile.zCoord & 0x3FFFFFFL) << 12
+                    | (tile.yCoord & 0xFFFL);
+                if (!frame.positions.add(position)) continue;
+                try {
+                    if (TickAccelerationHooks.accelerate(tile, extraTicks)) continue;
+                    if (nhUtilitiesLoaded && tile instanceof ITileEntityTickAcceleration accelerated
+                        && accelerated.tickAcceleration(extraTicks)) continue;
+                    for (int extra = 0; extra < extraTicks; extra++) {
+                        if (System.nanoTime() > deadline) return;
+                        if (tile.isInvalid()) break;
+                        tile.updateEntity();
+                    }
+                } catch (RuntimeException exception) {
+                    if (frame.loggedFailures.add(tile.getClass())) {
+                        LOG.warn(
+                            "Unable to accelerate tile entity at ({}, {}, {})",
+                            tile.xCoord,
+                            tile.yCoord,
+                            tile.zCoord,
+                            exception);
+                    }
+                }
+            }
+        } finally {
+            frame.elapsedNanos += System.nanoTime() - started;
+        }
+    }
+
+    private static List<TileEntity> nearbyTiles(World world, EntityPlayer player, int radius) {
         int cx = MathHelper.floor_double(player.posX);
         int cy = MathHelper.floor_double(player.posY);
         int cz = MathHelper.floor_double(player.posZ);
-        long deadline = System.nanoTime() + MAX_ACCELERATION_NANOS;
-        boolean nhUtilitiesLoaded = ModList.NHUtilities.isModLoaded();
-        int radius = config.accelerationRadius;
-
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -radius; dy <= radius; dy++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (System.nanoTime() > deadline) return;
-                    int x = cx + dx;
-                    int y = cy + dy;
-                    int z = cz + dz;
-                    if (y < 0 || y >= world.getActualHeight() || !world.blockExists(x, y, z)) continue;
-                    TileEntity tile = world.getTileEntity(x, y, z);
-                    if (tile == null || tile.isInvalid() || !tile.canUpdate() || isBlacklisted(tile)) continue;
-                    if (!frame.positions.add(new ChunkPosition(x, y, z))) continue;
-
-                    try {
-                        if (nhUtilitiesLoaded) {
-                            if (tile instanceof com.xir.NHUtilities.common.api.interfaces.ITileEntityTickAcceleration accelerated
-                                && accelerated.tickAcceleration(extraTicks)) continue;
-                        } else if (tile instanceof ITileEntityTickAcceleration accelerated
-                            && accelerated.tickAcceleration(extraTicks)) continue;
-                        for (int extra = 0; extra < extraTicks; extra++) {
-                            if (System.nanoTime() > deadline) return;
-                            if (tile.isInvalid()) break;
-                            tile.updateEntity();
-                        }
-                    } catch (Throwable ignored) {}
+        int minY = Math.max(0, cy - radius);
+        int maxY = Math.min(world.getActualHeight() - 1, cy + radius);
+        List<TileEntity> result = new ArrayList<>();
+        if (minY > maxY) return result;
+        for (int chunkX = (cx - radius) >> 4; chunkX <= (cx + radius) >> 4; chunkX++) {
+            for (int chunkZ = (cz - radius) >> 4; chunkZ <= (cz + radius) >> 4; chunkZ++) {
+                if (!world.getChunkProvider()
+                    .chunkExists(chunkX, chunkZ)) continue;
+                Chunk chunk = world.getChunkFromChunkCoords(chunkX, chunkZ);
+                for (Object entry : chunk.chunkTileEntityMap.values()) {
+                    if (entry instanceof TileEntity tile && tile.getWorldObj() == world
+                        && tile.xCoord >= cx - radius
+                        && tile.xCoord <= cx + radius
+                        && tile.yCoord >= minY
+                        && tile.yCoord <= maxY
+                        && tile.zCoord >= cz - radius
+                        && tile.zCoord <= cz + radius) result.add(tile);
                 }
             }
         }
+        return result;
     }
 
     @SubscribeEvent
@@ -131,6 +173,9 @@ public class MissBroomBlessingEffect extends EffectBase {
     private static class AccelerationFrame {
 
         private long tick = Long.MIN_VALUE;
-        private final Set<ChunkPosition> positions = new HashSet<>();
+        private long elapsedNanos;
+        private int cursor;
+        private final LongSet positions = new LongOpenHashSet();
+        private final Set<Class<?>> loggedFailures = new HashSet<>();
     }
 }

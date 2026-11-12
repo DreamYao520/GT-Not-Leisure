@@ -15,7 +15,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class MajoHat extends MajoArmor {
 
     public MajoHat() {
-        super("majo_hat", 0, 10, GTNLItemList.MajoHat);
+        super("majo_hat", 0, 6, GTNLItemList.MajoHat);
     }
 
     @Override

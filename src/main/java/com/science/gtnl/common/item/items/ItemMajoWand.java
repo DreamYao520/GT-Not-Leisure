@@ -72,7 +72,10 @@ public class ItemMajoWand extends ItemWandCasting {
     }
 
     public ItemStack upgradeStack(ItemStack input, MajoWandStage target) {
-        if (input.getItem() != this || input.getItemDamage() != target.ordinal() - 1) {
+        if (input == null || target == null
+            || target == MajoWandStage.DEPARTURE
+            || input.getItem() != this
+            || input.getItemDamage() != target.ordinal() - 1) {
             throw new IllegalArgumentException("Majo wands must be upgraded one stage at a time");
         }
         ItemStack result = input.copy();
@@ -111,12 +114,14 @@ public class ItemMajoWand extends ItemWandCasting {
     }
 
     private static void refillVis(ItemStack stack, EntityPlayer player) {
+        if (player != null && (player.worldObj.isRemote || player.ticksExisted % 20 != 0)) return;
         ItemWandCasting wand = (ItemWandCasting) stack.getItem();
         int maximum = wand.getMaxVis(stack);
         for (Aspect aspect : PRIMAL_ASPECTS) {
-            if (wand.getVis(stack, aspect) != maximum) {
-                stack.setTagInfo(aspect.getTag(), new NBTTagInt(maximum));
-            }
+            int current = wand.getVis(stack, aspect);
+            int amount = player == null ? maximum : 100;
+            int next = (int) Math.min(maximum, (long) Math.max(0, current) + amount);
+            if (current != next) stack.setTagInfo(aspect.getTag(), new NBTTagInt(next));
         }
     }
 

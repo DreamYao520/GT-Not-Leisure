@@ -104,7 +104,11 @@ public class ItemMajoBroom extends Item {
 
     public boolean place(ItemStack stack, EntityPlayer player, World world, double x, double y, double z,
         boolean ride) {
-        if (stack == null || stack.getItem() != this || player.ridingEntity != null) return false;
+        if (stack == null || stack.stackSize <= 0
+            || stack.getItem() != this
+            || player.isDead
+            || world != player.worldObj
+            || player.ridingEntity != null) return false;
         EntityMajoBroom broom = createBroom(world);
         broom.setPosition(x, y, z);
         broom.rotationYaw = player.rotationYaw;

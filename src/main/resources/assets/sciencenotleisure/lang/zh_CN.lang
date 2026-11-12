@@ -234,6 +234,10 @@ gtnl.gui.config.client.portal_gun_close_ticks.tooltip=关门动画的 tick 数�
 gtnl.gui.config.effect.enableghostlyshape=启用幽灵形态
 gtnl.gui.config.effect.enableghostlyshape.tooltip=当玩家死亡重生时，给予玩家幽灵形态效果
 
+gtnl.gui.config.item.broom=扫帚
+gtnl.gui.config.item.broom.enableviewcontrol=启用扫帚视角操控
+gtnl.gui.config.item.broom.enableviewcontrol.tooltip=按住前进键时，允许通过抬头或低头控制扫帚升降；关闭后仍可使用上升、下降按键
+
 gtnl.gui.config.item.energymodule=能量模块
 gtnl.gui.config.item.energymodule.capacityt1=T1 容量
 gtnl.gui.config.item.energymodule.capacityt1.tooltip=装有 T1 能量模块时电磁炮或每件护甲的 EU 容量
@@ -587,6 +591,51 @@ tc.research_category.gtnl=GTNL：随想魔法
 tc.research_name.gtnl.welcome=你的新起点
 tc.research_text.gtnl.welcome=并不友善
 tc.research_text.gtnl.welcome.1=欢迎来到奇思妙想的新世界！
+
+tc.research_name.gtnl.majo_broom=魔法扫帚
+tc.research_text.gtnl.majo_broom=离地三十秒，落地又一程
+tc.research_text.gtnl.majo_broom.0=给宏伟之木注入飞行源质，再配上轻巧的电动机，扫帚便有了离地的本领。<BR><BR>在符文矩阵中，以宏伟之木杖芯为中心，结合魔力布匹、神秘金属与 LV 部件完成注魔。<BR><BR>默认水平速度为每秒 12 格，单次离地最多飞行 30 秒；落地后重置时限。回收再放置会保留已用飞行时间。附魔可以提升速度、延长时限，或让扫帚沿液面连续飞行。
+
+tc.research_name.gtnl.majo_hat=魔女的帽子
+tc.research_text.gtnl.majo_hat=帽檐之下，看清远方
+tc.research_text.gtnl.majo_hat.0=护目镜能看见魔力，却不太适合戴着旅行。你将感知源质织进帽檐，让魔女的帽子在夜色中也能指引方向。<BR><BR>以神秘头盔为中心，加入魔力布匹、神秘金属与 MV 部件完成注魔。<BR><BR>帽子提供 3 点护甲和 6% Vis 消耗减免，赋予夜视，并清除失明与反胃。织物中的魔力使它不会损坏。
+
+tc.research_name.gtnl.majo_robe=魔女的长袍
+tc.research_text.gtnl.majo_robe=风尘留在衣摆，魔力护住旅人
+tc.research_text.gtnl.majo_robe.0=虚空金属能修复自身，那么由它支撑的长袍，或许也能保护跋涉中的旅人。你把生命与防护源质织进布料，又用力场稳定了其中的魔力。<BR><BR>以虚空胸甲为中心，加入魔力布匹、不锈钢与 HV 部件完成注魔。<BR><BR>长袍提供 6 点护甲、10% Vis 消耗减免、10 点额外生命、50% 击退抗性及扭曲守护，且不会损坏。生命值低于 10 点时，获得持续 10 秒的生命恢复 III 与抗性提升 II，冷却 60 秒。
+
+tc.research_name.gtnl.elaina_broom=伊蕾娜的扫帚
+tc.research_text.gtnl.elaina_broom=扫帚小姐，下一站去哪儿？
+tc.research_text.gtnl.elaina_broom.0=短暂的飞行已经不能满足漫长的旅途。你借助虚空金属与更稳定的力场，让扫帚小姐能够一直陪你飞向远方。<BR><BR>以魔法扫帚为中心，加入钛、虚空金属、元始魔力与 EV 部件完成注魔。原有附魔、自定义名称及其他数据会随升级保留。<BR><BR>默认飞行时限无限，水平速度为普通扫帚的 1.5 倍。骑乘时获得生命恢复 II、抗性提升 II 和扫帚小姐的祝福。祝福免疫摔落伤害，每 5 秒清除负面效果，并使各轴 3 格范围内的方块实体获得至多 25% 额外更新；多人重叠不会叠加，实际加速受每世界共享的运行预算限制。
+
+tc.research_name.gtnl.elaina_brooch=伊蕾娜的徽章
+tc.research_text.gtnl.elaina_brooch=把下一段旅途别在胸前
+tc.research_text.gtnl.elaina_brooch.0=旅人需要的未必是最坚固的盔甲。你将帽子与长袍中的守护魔力收束到一枚徽章，让它陪伴下一段旅途。<BR><BR>以元始魔力为中心，注入魔女的帽子、魔女的长袍、钨钢、钻石与 LuV 部件，制成徽章。<BR><BR>佩戴于头衔饰品栏时，默认获得创造飞行能力，最大生命值设为 40 点，每秒恢复饱食值并清除负面效果。徽章还提供夜视、防火、水下呼吸、急迫、生命恢复 I、抗性提升 I 和力量 II，受伤后的额外无敌保护为 0.5 秒。它默认不会覆盖护甲、瞬间补满生命或阻止死亡；具体效果以服务端配置为准。
+
+tc.research_name.gtnl.majo_wand.departure=魔女的法杖：启程
+tc.research_text.gtnl.majo_wand.departure=一段旅途，一根属于自己的法杖
+tc.research_text.gtnl.majo_wand.departure.0=旅途始于一根属于自己的法杖。<BR><BR>用 LV 组装机制作启程之芯，再将它放到符文矩阵的中心，结合神秘金属与魔力布匹完成注魔。启程阶段可储存每种元始要素 75 Vis，没有额外耗魔减免。<BR><BR>法杖可以安装神秘时代核心、吸收节点中的 Vis，也可为奥术工作台提供魔力。后续阶段以原杖为中心逐级注魔，保留已有 Vis、核心及其升级、自定义名称和其他数据。升级本身不会补充 Vis。
+
+tc.research_name.gtnl.majo_wand.resonance=魔女的法杖：共鸣
+tc.research_text.gtnl.majo_wand.resonance=让六种元始要素在杖芯中共鸣
+tc.research_text.gtnl.majo_wand.resonance.0=银树与六种元始要素使杖芯产生共鸣。<BR><BR>在 MV 组装机中制作共鸣之芯，将启程阶段法杖放在中心基座，按下一页配方进行注魔。<BR><BR>每种元始要素的容量提升至 150 Vis，法杖自身提供 5% Vis 消耗减免。升级不会凭空补充 Vis，仍需自行充能。
+
+tc.research_name.gtnl.majo_wand.starlight=魔女的法杖：星辉
+tc.research_text.gtnl.majo_wand.starlight=汇聚星辉，编织魔法
+tc.research_text.gtnl.majo_wand.starlight.0=平衡的元始要素与精密的力场，让星辉沿着杖身流转。<BR><BR>在 HV 组装机中制作星辉之芯，以共鸣阶段法杖为中心完成注魔。<BR><BR>每种元始要素的容量提升至 300 Vis，法杖自身提供 10% Vis 消耗减免。
+
+tc.research_name.gtnl.majo_wand.void=魔女的法杖：虚空
+tc.research_text.gtnl.majo_wand.void=在虚空中延伸旅途
+tc.research_text.gtnl.majo_wand.void.0=虚空金属承载着更庞大的魔力，而科技让它安定下来。<BR><BR>在 EV 组装机中制作虚空之芯，以星辉阶段法杖为中心完成注魔。<BR><BR>每种元始要素的容量提升至 600 Vis，法杖自身提供 15% Vis 消耗减免。
+
+tc.research_name.gtnl.majo_wand.ashen_legacy=魔女的法杖：灰之传承
+tc.research_text.gtnl.majo_wand.ashen_legacy=将所见所闻化作灰之传承
+tc.research_text.gtnl.majo_wand.ashen_legacy.0=虚空与元始魔力在杖芯中交织，留下属于灰之魔女的传承。<BR><BR>在 LuV 组装机中制作灰之传承核心，以虚空阶段法杖为中心，加入虚空金属、元始魔力与平衡碎片完成注魔。<BR><BR>每种元始要素的容量提升至 1000 Vis，法杖自身提供 20% Vis 消耗减免。
+
+tc.research_name.gtnl.majo_wand.journeys_end=魔女的法杖：旅途终章
+tc.research_text.gtnl.majo_wand.journeys_end=故事会结束，魔法不会
+tc.research_text.gtnl.majo_wand.journeys_end.0=漫长的旅途走到此处，法杖也学会了从周围缓缓积蓄魔力。<BR><BR>使用 HSS-G、铱、虚空种子与 ZPM 部件，在 ZPM 组装机中制作旅途核心，再以灰之传承阶段法杖为中心完成最终注魔。<BR><BR>每种元始要素可储存 2000 Vis，法杖自身提供 30% Vis 消耗减免。置于背包中时，每秒为六种元始要素各恢复 1 Vis，直至充满。<BR><BR>升级瞬间保留原有 Vis；接下来的魔力，留给旅途慢慢积累。
+
 
 tc.research_name.gtnl.timeStopPocketWatch=岁月静滞怀表
 tc.research_text.gtnl.timeStopPocketWatch=掌握时间的秘密
@@ -1152,6 +1201,7 @@ gtnl.machine.smelting_mixing_furnace.info.decay_blocking_enabled=§b已启用衰
 
 gtnl.machine.white_night_generator.name=白夜发电机
 gtnl.machine.white_night_generator.recipe_type=§d§l紫罗兰的洗礼
+
 gtnl.potion.awe=§r§f§l敬畏§r
 gtnl.effect.awe.cancel.0=§f§l不要害怕，我与你同在。除非我允许，否则你永远都不能离开。
 gtnl.effect.awe.cancel.1=§f§l不要否认我的存在，我就在你的眼前。
@@ -3683,6 +3733,101 @@ item.gtnl.celestweave.hud.duration_capped=>99h
 item.gtnl.celestweave.gui.multiplier=×%s
 death.attack.gtnl.celestweave.lightning=%1$s 被 %2$s 的闪电劈中
 
+item.gtnl.majo_armor.vis_discount=Vis 消耗减免：%s%%
+
+item.gtnl.majo_hat.name=§{infernum_spark_rarity;colors=#FF68C8,#E99BFF,#B978F2,#FFD6F3}魔女的帽子§r
+item.gtnl.majo_hat.lore.0=她把帽檐压低，任风吹过陌生城镇的屋顶。
+item.gtnl.majo_hat.lore.1=晴天时，它替她遮住刺眼的阳光；
+item.gtnl.majo_hat.lore.2=雨夜里，它陪她寻找远方的灯火。
+item.gtnl.majo_hat.lore.3=无论下一站在哪里，只要重新戴好这顶帽子，魔女便又能笑着启程。
+item.gtnl.majo_hat.worn=穿戴时：
+item.gtnl.majo_hat.tooltip.0=护甲值 +3
+item.gtnl.majo_hat.tooltip.1=夜视
+item.gtnl.majo_hat.tooltip.2=免疫失明与反胃
+item.gtnl.majo_hat.tooltip.3=无法损坏
+
+item.gtnl.majo_robe.name=§{infernum_spark_rarity;colors=#FF68C8,#E99BFF,#B978F2,#FFD6F3}魔女的长袍§r
+item.gtnl.majo_robe.lore.0=衣摆掠过山间小路、集市石阶与无数陌生的地方。
+item.gtnl.majo_robe.lore.1=它沾过旅途的尘埃，也记得每一次相遇和告别。
+item.gtnl.majo_robe.lore.2=夜色降临时，魔女裹紧长袍，把今天的故事留在心里，期待明天又会遇见什么。
+item.gtnl.majo_robe.worn=穿戴时：
+item.gtnl.majo_robe.armor=护甲值 +6
+item.gtnl.majo_robe.tooltip.0=无法破坏
+item.gtnl.majo_robe.tooltip.1=最大生命值 +10
+item.gtnl.majo_robe.tooltip.2=击退抗性 +50%
+item.gtnl.majo_robe.tooltip.3=获得扭曲守护
+item.gtnl.majo_robe.tooltip.4=生命值低于10时：
+item.gtnl.majo_robe.tooltip.5=获得10秒生命恢复III与抗性提升II
+item.gtnl.majo_robe.tooltip.6=冷却时间：60秒
+
+item.gtnl.majo_broom.name=§{starsilver_rarity}魔法扫帚§r
+entity.sciencenotleisure.MajoBroom.name=魔法扫帚
+item.gtnl.majo_broom.lore.0=成为魔女的第一步，就是先拥有一把扫帚。
+item.gtnl.majo_broom.lore.1=真正的魔女，会认真对待每一把属于自己的扫帚。
+item.gtnl.majo_broom.tooltip.0=可放置在世界中，骑乘扫帚飞行。
+item.gtnl.majo_broom.tooltip.1=可通过附魔强化扫帚。
+item.gtnl.majo_broom.view_control_hint=（可以在配置文件中关闭视角操控）
+
+enchantment.gtnl.land_skills=地之礼遇
+enchantment.gtnl.land_skills.desc=扫帚贴地飞行时，每级提升20%水平速度，最高3级；与风之礼遇互斥。
+enchantment.gtnl.air_skills=风之礼遇
+enchantment.gtnl.air_skills.desc=扫帚凌空飞行时，每级提升20%水平速度，最高3级；与地之礼遇互斥。
+enchantment.gtnl.hovering=凌空久驻
+enchantment.gtnl.hovering.desc=每级延长扫帚25%的最大飞行时间，最高4级。
+enchantment.gtnl.seabreeze=海风之佑
+enchantment.gtnl.seabreeze.desc=接触水面或岩浆表面时减缓下降并重置飞行时间，使扫帚能够沿液面连续飞行。
+
+item.gtnl.elaina_broom.name=§{infernum_spark_rarity}伊蕾娜的扫帚§r
+entity.sciencenotleisure.ElainaBroom.name=伊蕾娜的扫帚
+item.gtnl.elaina_broom.lore.0=陪伴了某位屑魔女旅行很久的扫帚小姐。
+item.gtnl.elaina_broom.lore.1=她和她曾越过云海，也曾在陌生城镇的屋檐上停留。
+item.gtnl.elaina_broom.lore.2=漫长的旅途里，风景与故事不断更替，她却始终陪着她。
+item.gtnl.elaina_broom.lore.3=只要她想，下一段旅程随时可以开始。
+item.gtnl.elaina_broom.tooltip.0=无限的飞行时间
+item.gtnl.elaina_broom.finite_flight=最大飞行时间：%s秒
+item.gtnl.elaina_broom.tooltip.1=无法被摧毁
+item.gtnl.elaina_broom.tooltip.2=骑乘时获得生命恢复II和抗性提升II
+item.gtnl.elaina_broom.tooltip.3=获得扫帚小姐的祝福！
+gtnl.potion.miss_broom_blessing=扫帚小姐的祝福
+
+item.gtnl.elaina_brooch.name=§{infernum_spark_rarity}伊蕾娜的徽章§r
+item.gtnl.elaina_brooch.lore.0=她将徽章别在胸前，带着初次启程时的期待走向远方。
+item.gtnl.elaina_brooch.lore.1=山路、集市与陌生城镇，都成了旅途中的故事。
+item.gtnl.elaina_brooch.lore.2=偶尔遇上风雨，她便低头看一眼那枚小小的徽章，
+item.gtnl.elaina_brooch.lore.3=然后抬起头，继续寻找下一处还未见过的风景。
+item.gtnl.elaina_brooch.worn=放置在饰品栏时，获得以下增益：
+item.gtnl.elaina_brooch.tooltip.0=星空旅图：获得创造飞行能力
+item.gtnl.elaina_brooch.tooltip.1=魔法回响：%s
+item.gtnl.elaina_brooch.tooltip.2=灰之奇迹：%s
+item.gtnl.elaina_brooch.disabled=服务端已禁用徽章增益
+item.gtnl.elaina_brooch.armor=护甲值设置为%s
+item.gtnl.elaina_brooch.max_health=最大生命值设置为%s
+item.gtnl.elaina_brooch.restore_health=每%s秒恢复生命值至上限
+item.gtnl.elaina_brooch.food=饱食度设置为%s，饱和度设置为%s
+item.gtnl.elaina_brooch.cleanse=清除负面效果
+item.gtnl.elaina_brooch.prevent_death=阻止死亡
+item.gtnl.elaina_brooch.invulnerability=受伤后无敌时间延长至%s秒
+
+item.gtnl.majo_wand.name=§{infernum_spark_rarity}魔女的法杖§r
+item.gtnl.majo_wand.stage=旅途阶段：%s
+item.gtnl.majo_wand.stage.departure=启程
+item.gtnl.majo_wand.stage.resonance=共鸣
+item.gtnl.majo_wand.stage.starlight=星辉
+item.gtnl.majo_wand.stage.void=虚空
+item.gtnl.majo_wand.stage.ashen_legacy=灰之传承
+item.gtnl.majo_wand.stage.journeys_end=旅途终章
+item.gtnl.majo_wand.discount=法杖自身 Vis 消耗减免：%s%%
+item.gtnl.majo_wand.tooltip=兼容神秘时代核心、Vis 充能与奥术工作台。
+item.gtnl.majo_wand.refill=置于背包中时，每秒为六种元始要素各恢复 1 Vis。
+
+item.gtnl.majo_wand_core.departure.name=启程之芯
+item.gtnl.majo_wand_core.resonance.name=共鸣之芯
+item.gtnl.majo_wand_core.starlight.name=星辉之芯
+item.gtnl.majo_wand_core.void.name=虚空之芯
+item.gtnl.majo_wand_core.ashen_legacy.name=灰之传承核心
+item.gtnl.majo_wand_core.journeys_end.name=旅途核心
+item.gtnl.majo_wand_core.tooltip=用于魔女法杖的制作或对应阶段的注魔升级。
+
 item.gtnl.circuit_integrated_plus.name=突破编程电路
 
 item.gtnl.time_stop_pocket_watch.name=岁月静滞怀表
@@ -4540,116 +4685,9 @@ key.gtnl.highlight_recursive_patterns=高亮递归样板所在机器
 key.gtnl.celestweave_dash=苍穹织雷冲刺
 key.gtnl.equipment_settings=装备轮盘
 key.gtnl.celestweave_backpack=打开苍穹织雷背包
-key.categories.gtnl=Science Not Leisure
-
-gtnl.gui.config.item.broom=扫帚
-gtnl.gui.config.item.broom.enableviewcontrol=启用扫帚视角操控
-gtnl.gui.config.item.broom.enableviewcontrol.tooltip=按住前进键时，允许通过抬头或低头控制扫帚升降；关闭后仍可使用上升、下降按键
-gtnl.potion.miss_broom_blessing=扫帚小姐的祝福
-item.gtnl.majo_hat.name=§{infernum_spark_rarity;colors=#FF68C8,#E99BFF,#B978F2,#FFD6F3}魔女的帽子§r
-item.gtnl.majo_robe.name=§{infernum_spark_rarity;colors=#FF68C8,#E99BFF,#B978F2,#FFD6F3}魔女的长袍§r
-item.gtnl.majo_armor.vis_discount=Vis 消耗减免：%s%%
-item.gtnl.majo_hat.lore.0=她把帽檐压低，任风吹过陌生城镇的屋顶。
-item.gtnl.majo_hat.lore.1=晴天时，它替她遮住刺眼的阳光；
-item.gtnl.majo_hat.lore.2=雨夜里，它陪她寻找远方的灯火。
-item.gtnl.majo_hat.lore.3=无论下一站在哪里，只要重新戴好这顶帽子，魔女便又能笑着启程。
-item.gtnl.majo_hat.worn=穿戴时：
-item.gtnl.majo_hat.tooltip.0=盔甲值 +7
-item.gtnl.majo_hat.tooltip.1=夜视
-item.gtnl.majo_hat.tooltip.2=免疫失明与反胃
-item.gtnl.majo_hat.tooltip.3=无法损坏
-item.gtnl.majo_robe.lore.0=衣摆掠过山间小路、集市石阶与无数陌生的地方。
-item.gtnl.majo_robe.lore.1=它沾过旅途的尘埃，也记得每一次相遇和告别。
-item.gtnl.majo_robe.lore.2=夜色降临时，魔女裹紧长袍，把今天的故事留在心里，期待明天又会遇见什么。
-item.gtnl.majo_robe.worn=穿戴时：
-item.gtnl.majo_robe.armor=盔甲值 +10
-item.gtnl.majo_robe.tooltip.0=无法破坏
-item.gtnl.majo_robe.tooltip.1=最大生命值 +20
-item.gtnl.majo_robe.tooltip.2=免疫击退
-item.gtnl.majo_robe.tooltip.3=获得扭曲守护
-item.gtnl.majo_robe.tooltip.4=生命值低于10时：
-item.gtnl.majo_robe.tooltip.5=获得15秒生命恢复V与抗性提升III
-item.gtnl.majo_robe.tooltip.6=冷却时间：60秒
-item.gtnl.majo_broom.name=§{starsilver_rarity}魔法扫帚§r
-item.gtnl.majo_wand.name=§{infernum_spark_rarity}魔女的法杖§r
-item.gtnl.majo_wand.stage=旅途阶段：%s
-item.gtnl.majo_wand.discount=法杖自身 Vis 消耗减免：%s%%
-item.gtnl.majo_wand.stage.departure=启程
-item.gtnl.majo_wand.stage.resonance=共鸣
-item.gtnl.majo_wand.stage.starlight=星辉
-item.gtnl.majo_wand.stage.void=虚空
-item.gtnl.majo_wand.stage.ashen_legacy=灰之传承
-item.gtnl.majo_wand.stage.journeys_end=旅途终章
-item.gtnl.majo_wand.tooltip=兼容神秘时代核心、Vis 充能与奥术工作台。
-item.gtnl.majo_wand.refill=置于背包中时，每 tick 补满六种源质 Vis。
-item.gtnl.majo_wand_core.departure.name=启程之芯
-item.gtnl.majo_wand_core.resonance.name=共鸣之芯
-item.gtnl.majo_wand_core.starlight.name=星辉之芯
-item.gtnl.majo_wand_core.void.name=虚空之芯
-item.gtnl.majo_wand_core.ashen_legacy.name=灰之传承核心
-item.gtnl.majo_wand_core.journeys_end.name=旅途核心
-item.gtnl.majo_wand_core.tooltip=用于魔女法杖的制作或对应阶段的注魔升级。
-tc.research_name.gtnl.majo_wand.departure=魔女的法杖：启程
-tc.research_name.gtnl.majo_wand.resonance=魔女的法杖：共鸣
-tc.research_name.gtnl.majo_wand.starlight=魔女的法杖：星辉
-tc.research_name.gtnl.majo_wand.void=魔女的法杖：虚空
-tc.research_name.gtnl.majo_wand.ashen_legacy=魔女的法杖：灰之传承
-tc.research_name.gtnl.majo_wand.journeys_end=魔女的法杖：旅途终章
-tc.research_text.gtnl.majo_wand.departure=一段旅途，一根属于自己的法杖
-tc.research_text.gtnl.majo_wand.resonance=让六种源质在杖芯中共鸣
-tc.research_text.gtnl.majo_wand.starlight=汇聚星辉，编织魔法
-tc.research_text.gtnl.majo_wand.void=在虚空中延伸旅途
-tc.research_text.gtnl.majo_wand.ashen_legacy=将所见所闻化作灰之传承
-tc.research_text.gtnl.majo_wand.journeys_end=故事会结束，魔法不会
-tc.research_text.gtnl.majo_wand.departure.0=旅途始于一根属于自己的法杖。<BR><BR>先用青铜蒸汽组装机制作启程之芯，不需要电路和液态焊锡，再通过奥术工作台完成法杖。启程阶段可储存每种源质 75 Vis，没有额外耗魔减免。<BR><BR>这根法杖可以安装神秘时代核心、吸收节点中的 Vis，也可为奥术工作台提供魔力。后续阶段以原杖为中心进行注魔，保留已有 Vis、核心及其升级、自定义名称和其他数据。每次只能提升一个阶段。
-tc.research_text.gtnl.majo_wand.resonance.0=银树与六种源质使杖芯产生共鸣。<BR><BR>在 MV 组装机中制作共鸣之芯，将启程阶段法杖放在中心基座，按下一页配方进行注魔。<BR><BR>每种源质的容量提升至 150 Vis，法杖自身提供 5% Vis 消耗减免。升级不会凭空补充 Vis，仍需自行充能。
-tc.research_text.gtnl.majo_wand.starlight.0=平衡的源质与精密的力场，让星辉沿着杖身流转。<BR><BR>在 HV 组装机中制作星辉之芯，以共鸣阶段法杖为中心完成注魔。<BR><BR>每种源质的容量提升至 300 Vis，法杖自身提供 10% Vis 消耗减免。
-tc.research_text.gtnl.majo_wand.void.0=虚空金属承载着更庞大的魔力，而科技让它安定下来。<BR><BR>在 EV 组装机中制作虚空之芯，以星辉阶段法杖为中心完成注魔。<BR><BR>每种源质的容量提升至 600 Vis，法杖自身提供 15% Vis 消耗减免。
-tc.research_text.gtnl.majo_wand.ashen_legacy.0=将本初之力融入法杖，留下属于灰之魔女的传承。<BR><BR>在 IV 组装机中制作灰之传承核心，以虚空阶段法杖为中心，加入本初珍珠完成注魔。<BR><BR>每种源质的容量提升至 1000 Vis，法杖自身提供 20% Vis 消耗减免。
-tc.research_text.gtnl.majo_wand.journeys_end.0=漫长的旅途终于走到此处，但她随时可以书写新的故事。<BR><BR>使用 HSS-G、铱、虚空金属与 LuV 部件，在 LuV 组装机中制作旅途核心，再以灰之传承阶段法杖为中心完成最终注魔。<BR><BR>容量与无尽法杖一致：每种源质 9,999,999 Vis。置于玩家背包中时，每 tick 自动补满六种源质。杖端基础耗魔系数为 0，实际耗魔仍遵守神秘时代最低 10% 的限制。<BR><BR>升级瞬间保留原有 Vis，放回背包后开始自动补能。
-entity.sciencenotleisure.MajoBroom.name=魔法扫帚
-item.gtnl.majo_broom.lore.0=成为魔女的第一步，就是先拥有一把扫帚。
-item.gtnl.majo_broom.lore.1=真正的魔女，会认真对待每一把属于自己的扫帚。
-item.gtnl.majo_broom.tooltip.0=可放置在世界中，骑乘扫帚飞行。
-item.gtnl.majo_broom.tooltip.1=可通过附魔强化扫帚。
-item.gtnl.majo_broom.view_control_hint=（可以在配置文件中关闭视角操控）
-item.gtnl.elaina_broom.name=§{infernum_spark_rarity}伊蕾娜的扫帚§r
-entity.sciencenotleisure.ElainaBroom.name=伊蕾娜的扫帚
-item.gtnl.elaina_brooch.name=§{infernum_spark_rarity}伊蕾娜的徽章§r
-item.gtnl.elaina_brooch.lore.0=她将徽章别在胸前，带着初次启程时的期待走向远方。
-item.gtnl.elaina_brooch.lore.1=山路、集市与陌生城镇，都成了旅途中的故事。
-item.gtnl.elaina_brooch.lore.2=偶尔遇上风雨，她便低头看一眼那枚小小的徽章，
-item.gtnl.elaina_brooch.lore.3=然后抬起头，继续寻找下一处还未见过的风景。
-item.gtnl.elaina_brooch.worn=放置在饰品栏时，获得以下增益：
-item.gtnl.elaina_brooch.tooltip.0=星空旅图：获得创造飞行能力
-item.gtnl.elaina_brooch.tooltip.1=魔法回响：%s
-item.gtnl.elaina_brooch.tooltip.2=灰之奇迹：%s
-item.gtnl.elaina_brooch.disabled=服务端已禁用徽章增益
-item.gtnl.elaina_brooch.armor=护甲值设置为%s
-item.gtnl.elaina_brooch.max_health=最大生命值设置为%s
-item.gtnl.elaina_brooch.restore_health=每%s秒恢复生命值至上限
-item.gtnl.elaina_brooch.food=饱食值设置为%s，饱和度设置为%s
-item.gtnl.elaina_brooch.cleanse=清除Debuff
-item.gtnl.elaina_brooch.prevent_death=阻止死亡
-item.gtnl.elaina_brooch.invulnerability=受伤后无敌时间延长至%s秒
-item.gtnl.elaina_broom.finite_flight=最大飞行时间：%s秒
-item.gtnl.elaina_broom.lore.0=陪伴了某位屑魔女旅行很久的扫帚小姐。
-item.gtnl.elaina_broom.lore.1=她和她曾越过云海，也曾在陌生城镇的屋檐上停留。
-item.gtnl.elaina_broom.lore.2=漫长的旅途里，风景与故事不断更替，她却始终陪着她。
-item.gtnl.elaina_broom.lore.3=只要她想，下一段旅程随时可以开始。
-item.gtnl.elaina_broom.tooltip.0=无限的飞行时间
-item.gtnl.elaina_broom.tooltip.1=无法被摧毁
-item.gtnl.elaina_broom.tooltip.2=乘骑时获得生命恢复2和抗性提升2
-item.gtnl.elaina_broom.tooltip.3=获得扫帚小姐的祝福！
 key.gtnl.majo_broom.place=放置魔法扫帚
 key.gtnl.majo_broom.ride=放置并骑乘魔法扫帚
 key.gtnl.majo_broom.ascend=扫帚上升
 key.gtnl.majo_broom.descend=扫帚下降
-enchantment.gtnl.land_skills=地之礼遇
-enchantment.gtnl.land_skills.desc=扫帚贴地飞行时，每级提升20%水平速度，最高3级；与风之礼遇互斥。
-enchantment.gtnl.air_skills=风之礼遇
-enchantment.gtnl.air_skills.desc=扫帚凌空飞行时，每级提升20%水平速度，最高3级；与地之礼遇互斥。
-enchantment.gtnl.hovering=凌空久驻
-enchantment.gtnl.hovering.desc=每级延长扫帚25%的最大飞行时间，最高4级。
-enchantment.gtnl.seabreeze=海风之佑
-enchantment.gtnl.seabreeze.desc=接触水面或岩浆表面时减缓下降并重置飞行时间，使扫帚能够沿液面连续飞行。
+
+key.categories.gtnl=Science Not Leisure

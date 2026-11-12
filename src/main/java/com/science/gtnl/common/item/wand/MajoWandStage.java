@@ -7,7 +7,7 @@ public enum MajoWandStage {
     STARLIGHT("starlight", 300, 0.9F, 0xE8DDAB),
     VOID("void", 600, 0.85F, 0x78619E),
     ASHEN_LEGACY("ashen_legacy", 1000, 0.8F, 0xC1BDC9),
-    JOURNEYS_END("journeys_end", 9_999_999, 0.0F, 0xE5B3EA);
+    JOURNEYS_END("journeys_end", 2000, 0.7F, 0xE5B3EA);
 
     private static final MajoWandStage[] STAGES = values();
 

@@ -33,14 +33,14 @@ public class EffectConfig {
         public boolean enableAcceleration = true;
 
         @Comment("Acceleration radius in blocks along each axis")
-        @DefaultInt(5)
+        @DefaultInt(3)
         @RangeInt(min = 0, max = 16)
-        public int accelerationRadius = 5;
+        public int accelerationRadius = 3;
 
         @Comment("Extra tile entity ticks as a percentage; 50 means 50% faster, 0 disables acceleration")
-        @DefaultInt(50)
+        @DefaultInt(25)
         @RangeInt(min = 0, max = 1000)
-        public int accelerationPercent = 50;
+        public int accelerationPercent = 25;
 
         @Comment("Additional tile entity registry names to exclude; the Chronarch Clock blacklist also applies")
         @DefaultStringList({})

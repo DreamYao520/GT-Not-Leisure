@@ -27,23 +27,23 @@ public class MajoArmorHandler {
     private static final AttributeModifier HEALTH_BONUS = new AttributeModifier(
         HEALTH_BONUS_ID,
         "Majo robe maximum health",
-        20.0D,
-        0);
+        10.0D,
+        0).setSaved(false);
     private static final AttributeModifier KNOCKBACK_BONUS = new AttributeModifier(
         KNOCKBACK_BONUS_ID,
         "Majo robe knockback resistance",
-        1.0D,
-        0);
+        0.5D,
+        0).setSaved(false);
     private static final AttributeModifier TRAVELER_HEALTH_BONUS = new AttributeModifier(
         TRAVELER_HEALTH_BONUS_ID,
         "Majo traveler maximum health",
         80.0D,
-        0);
+        0).setSaved(false);
     private static final String COOLDOWN_TAG = "GTNLMajoRobeCooldown";
     private static final String TRAVELER_ACTIVE_TAG = "GTNLMajoTravelerActive";
     private static final String TRAVELER_FLIGHT_TAG = "GTNLMajoTravelerFlight";
     private static final int EMERGENCY_COOLDOWN = 60 * 20;
-    private static final int EMERGENCY_DURATION = 15 * 20;
+    private static final int EMERGENCY_DURATION = 10 * 20;
     private static final int TRAVELER_EFFECT_DURATION = 60;
 
     @SubscribeEvent
@@ -89,8 +89,8 @@ public class MajoArmorHandler {
         if (wearingRobe) {
             if (PotionWarpWard.instance != null) refreshEffect(player, PotionWarpWard.instance, 0, 60);
             if (player.getHealth() < 10.0F && cooldown == 0) {
-                refreshEffect(player, Potion.regeneration, 4, EMERGENCY_DURATION);
-                refreshEffect(player, Potion.resistance, 2, EMERGENCY_DURATION);
+                refreshEffect(player, Potion.regeneration, 2, EMERGENCY_DURATION);
+                refreshEffect(player, Potion.resistance, 1, EMERGENCY_DURATION);
                 data.setInteger(COOLDOWN_TAG, EMERGENCY_COOLDOWN);
             }
         }
@@ -151,8 +151,13 @@ public class MajoArmorHandler {
     private static void updateModifier(IAttributeInstance attribute, AttributeModifier modifier, boolean enabled) {
         if (attribute == null) return;
         AttributeModifier current = attribute.getModifier(modifier.getID());
+        if (current != null && (!enabled || current.getAmount() != modifier.getAmount()
+            || current.getOperation() != modifier.getOperation()
+            || current.isSaved() != modifier.isSaved())) {
+            attribute.removeModifier(current);
+            current = null;
+        }
         if (enabled && current == null) attribute.applyModifier(modifier);
-        if (!enabled && current != null) attribute.removeModifier(current);
     }
 
     private static void refreshEffect(EntityPlayer player, Potion potion, int amplifier, int duration) {

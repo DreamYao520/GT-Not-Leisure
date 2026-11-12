@@ -4,6 +4,7 @@ import static com.science.gtnl.ScienceNotLeisure.RESOURCE_ROOT_ID;
 
 import java.util.List;
 
+import net.minecraft.client.model.ModelBiped;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -25,7 +26,7 @@ import thaumcraft.api.aspects.Aspect;
 public abstract class MajoArmor extends ItemArmor implements IVisDiscountGear {
 
     private static final ArmorMaterial MAJO_MATERIAL = EnumHelper
-        .addArmorMaterial("GTNL_MAJO", 0, new int[] { 7, 10, 0, 0 }, 25);
+        .addArmorMaterial("GTNL_MAJO", 0, new int[] { 3, 6, 0, 0 }, 25);
 
     private final String itemId;
     private final int visDiscount;
@@ -61,7 +62,7 @@ public abstract class MajoArmor extends ItemArmor implements IVisDiscountGear {
 
     @Override
     @SideOnly(Side.CLIENT)
-    public net.minecraft.client.model.ModelBiped getArmorModel(EntityLivingBase entity, ItemStack stack, int slot) {
+    public ModelBiped getArmorModel(EntityLivingBase entity, ItemStack stack, int slot) {
         MajoArmorModel model = armorType == 0 ? MajoArmorModel.HAT : MajoArmorModel.ROBE;
         model.isSneak = entity.isSneaking();
         model.isRiding = entity.isRiding();

@@ -15,7 +15,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class MajoRobe extends MajoArmor {
 
     public MajoRobe() {
-        super("majo_robe", 1, 15, GTNLItemList.MajoRobe);
+        super("majo_robe", 1, 10, GTNLItemList.MajoRobe);
     }
 
     @Override

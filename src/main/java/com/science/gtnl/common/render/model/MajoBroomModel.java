@@ -77,7 +77,7 @@ public class MajoBroomModel {
                 .getAsFloat() };
     }
 
-    public static final class Element {
+    public static class Element {
 
         public final float[] from;
         public final float[] to;

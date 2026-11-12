@@ -15,6 +15,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.IFluidBlock;
 
+import com.science.gtnl.common.item.items.ItemMajoBroom;
 import com.science.gtnl.config.ItemConfig;
 import com.science.gtnl.loader.EnchantmentLoader;
 import com.science.gtnl.loader.ItemLoader;
@@ -54,6 +55,7 @@ public class EntityMajoBroom extends Entity {
     private static final double CLIENT_SNAP_DISTANCE_SQUARED = 256.0D;
     private static final int BROOM_STACK_WATCHER = 20;
     private static final int GROUND_SKILLS_WATCHER = 21;
+    private static final String FLIGHT_USAGE_TAG = "GTNLMajoBroomFlightTicks";
     public ItemStack broomStack;
     private int flightTicks;
     private byte keyVerticalInput;
@@ -105,9 +107,14 @@ public class EntityMajoBroom extends Entity {
     }
 
     public void setBroomStack(ItemStack stack) {
+        if (stack == null || stack.stackSize <= 0 || !(stack.getItem() instanceof ItemMajoBroom)) {
+            stack = getDefaultBroomStack();
+        }
         broomStack = stack.copy();
         broomStack.stackSize = 1;
         dataWatcher.updateObject(BROOM_STACK_WATCHER, broomStack);
+        NBTTagCompound data = broomStack.getTagCompound();
+        flightTicks = data == null ? 0 : Math.max(0, Math.min(getMaxFlightTicks(), data.getInteger(FLIGHT_USAGE_TAG)));
     }
 
     public ItemStack getBroomStack() {
@@ -444,6 +451,7 @@ public class EntityMajoBroom extends Entity {
 
     @Override
     public boolean interactFirst(EntityPlayer player) {
+        if (isDead) return false;
         if (player.isSneaking()) {
             if (!worldObj.isRemote && riddenByEntity == null) recover(player);
             return true;
@@ -466,9 +474,16 @@ public class EntityMajoBroom extends Entity {
     }
 
     public void recover(EntityPlayer player) {
+        if (worldObj.isRemote || isDead || riddenByEntity != null || player.isDead || player.worldObj != worldObj)
+            return;
         ItemStack result = getBroomStack().copy();
-        if (!player.inventory.addItemStackToInventory(result)) entityDropItem(result, 0.0F);
+        if (!result.hasTagCompound()) result.setTagCompound(new NBTTagCompound());
+        if (flightTicks > 0) result.getTagCompound()
+            .setInteger(FLIGHT_USAGE_TAG, flightTicks);
+        else result.getTagCompound()
+            .removeTag(FLIGHT_USAGE_TAG);
         setDead();
+        if (!player.inventory.addItemStackToInventory(result)) entityDropItem(result, 0.0F);
     }
 
     @Override
@@ -500,7 +515,8 @@ public class EntityMajoBroom extends Entity {
             ? ItemStack.loadItemStackFromNBT(tag.getCompoundTag("BroomStack"))
             : null;
         setBroomStack(stack == null ? getDefaultBroomStack() : stack);
-        flightTicks = Math.max(0, Math.min(getMaxFlightTicks(), tag.getInteger("FlightTicks")));
+        if (tag.hasKey("FlightTicks", 3))
+            flightTicks = Math.max(0, Math.min(getMaxFlightTicks(), tag.getInteger("FlightTicks")));
     }
 
     @Override

@@ -46,9 +46,9 @@ public class ItemConfig {
         public boolean enableViewControl = true;
 
         @Comment("Magic Broom maximum horizontal speed in blocks per second")
-        @DefaultDouble(15.0D)
+        @DefaultDouble(12.0D)
         @RangeDouble(min = 0.1D, max = 100.0D)
-        public double maxSpeed = 15.0D;
+        public double maxSpeed = 12.0D;
 
         @Comment("Magic Broom flight duration in seconds; landing resets the timer")
         @DefaultInt(30)
@@ -56,9 +56,9 @@ public class ItemConfig {
         public int flightDurationSeconds = 30;
 
         @Comment("Elaina's Broom speed multiplier relative to the Magic Broom")
-        @DefaultDouble(2.0D)
+        @DefaultDouble(1.5D)
         @RangeDouble(min = 0.1D, max = 10.0D)
-        public double elainaSpeedMultiplier = 2.0D;
+        public double elainaSpeedMultiplier = 1.5D;
 
         @Comment("Give Elaina's Broom unlimited flight; otherwise use flightDurationSeconds")
         @DefaultBoolean(true)
@@ -105,22 +105,22 @@ public class ItemConfig {
         public boolean enableCreativeFlight = true;
 
         @Comment("Override armor value and armor mitigation; 25 or more blocks all armor-blockable damage")
-        @DefaultBoolean(true)
-        public boolean overrideArmor = true;
+        @DefaultBoolean(false)
+        public boolean overrideArmor = false;
 
         @Comment("Fixed armor value; armor-blockable damage reduction is capped at 100%")
-        @DefaultInt(40)
+        @DefaultInt(12)
         @RangeInt(min = 0, max = 100)
-        public int armorValue = 40;
+        public int armorValue = 12;
 
         @Comment("Override maximum health while the brooch is worn")
         @DefaultBoolean(true)
         public boolean overrideMaxHealth = true;
 
         @Comment("Fixed maximum health in health points, not hearts")
-        @DefaultDouble(100.0D)
+        @DefaultDouble(40.0D)
         @RangeDouble(min = 1.0D, max = 1000000.0D)
-        public double maxHealth = 100.0D;
+        public double maxHealth = 40.0D;
 
         @Comment("Seconds between health, food and cleanse updates")
         @DefaultInt(1)
@@ -128,8 +128,8 @@ public class ItemConfig {
         public int restoreIntervalSeconds = 1;
 
         @Comment("Restore health to maximum at each restore interval")
-        @DefaultBoolean(true)
-        public boolean restoreHealth = true;
+        @DefaultBoolean(false)
+        public boolean restoreHealth = false;
 
         @Comment("Restore hunger and saturation at each restore interval")
         @DefaultBoolean(true)
@@ -150,13 +150,13 @@ public class ItemConfig {
         public boolean enableCleanse = true;
 
         @Comment("Prevent lethal damage and death while the brooch is worn")
-        @DefaultBoolean(true)
-        public boolean preventDeath = true;
+        @DefaultBoolean(false)
+        public boolean preventDeath = false;
 
         @Comment("Seconds of additional immunity after a hit; 0 disables this effect")
-        @DefaultDouble(2.5D)
+        @DefaultDouble(0.5D)
         @RangeDouble(min = 0.0D, max = 60.0D)
-        public double invulnerabilitySeconds = 2.5D;
+        public double invulnerabilitySeconds = 0.5D;
 
         @Comment("Enable periodic potion effects; disabling stops refreshes, existing effects expire naturally")
         @DefaultBoolean(true)
@@ -183,9 +183,9 @@ public class ItemConfig {
         public int fireResistanceLevel = 1;
 
         @Comment("Regeneration level; 0 disables the effect")
-        @DefaultInt(3)
+        @DefaultInt(1)
         @RangeInt(min = 0, max = 256)
-        public int regenerationLevel = 3;
+        public int regenerationLevel = 1;
 
         @Comment("Water Breathing level; 0 disables the effect")
         @DefaultInt(1)
@@ -198,14 +198,14 @@ public class ItemConfig {
         public int hasteLevel = 1;
 
         @Comment("Resistance level; 0 disables the effect")
-        @DefaultInt(2)
+        @DefaultInt(1)
         @RangeInt(min = 0, max = 256)
-        public int resistanceLevel = 2;
+        public int resistanceLevel = 1;
 
         @Comment("Strength level; 0 disables the effect")
-        @DefaultInt(5)
+        @DefaultInt(2)
         @RangeInt(min = 0, max = 256)
-        public int strengthLevel = 5;
+        public int strengthLevel = 2;
     }
 
     public static final EnergyModule energyModule = new EnergyModule();

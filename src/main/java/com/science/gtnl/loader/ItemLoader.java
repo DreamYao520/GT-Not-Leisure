@@ -749,22 +749,15 @@ public class ItemLoader {
     }
 
     public static void registrySuspiciousStewFlower() {
-        // 蒲公英
         registerFlower(Blocks.yellow_flower, 0, new PotionEffect(Potion.field_76443_y.id, 7));
-        // 罂粟
         registerFlower(Blocks.red_flower, 0, new PotionEffect(Potion.nightVision.id, 100));
-        // 兰花
         registerFlower(Blocks.red_flower, 1, new PotionEffect(Potion.field_76443_y.id, 7));
-        // 绒球葱
         registerFlower(Blocks.red_flower, 2, new PotionEffect(Potion.fireResistance.id, 60));
-        // 蓝花美耳草
         registerFlower(Blocks.red_flower, 3, new PotionEffect(Potion.blindness.id, 220));
-        // 郁金香
         registerFlower(Blocks.red_flower, 4, new PotionEffect(Potion.weakness.id, 140));
         registerFlower(Blocks.red_flower, 5, new PotionEffect(Potion.weakness.id, 140));
         registerFlower(Blocks.red_flower, 6, new PotionEffect(Potion.weakness.id, 140));
         registerFlower(Blocks.red_flower, 7, new PotionEffect(Potion.weakness.id, 140));
-        // 滨菊
         registerFlower(Blocks.red_flower, 8, new PotionEffect(Potion.regeneration.id, 140));
     }
 

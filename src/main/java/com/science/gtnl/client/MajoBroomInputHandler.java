@@ -18,7 +18,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public final class MajoBroomInputHandler {
+public class MajoBroomInputHandler {
 
     public static final KeyBinding PLACE = new KeyBinding(
         "key.gtnl.majo_broom.place",
